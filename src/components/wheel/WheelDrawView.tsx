@@ -347,19 +347,16 @@ export function WheelDrawView() {
           Monthly Lucky Wheel
         </h2>
 
-        {/* Scheduled Serial Date & Rotation Notice */}
-        <div className="flex flex-wrap items-center justify-center gap-1.5 text-[11px] text-slate-500 font-medium mt-1">
-          <span className="flex items-center gap-1">
-            <Calendar className="w-3.5 h-3.5 text-indigo-500" />
-            <span>Draw Date: <strong className="text-slate-800">{scheduledDrawDateText}</strong></span>
+        {/* Compact Schedule & Rotation Chips */}
+        <div className="flex flex-wrap items-center justify-center gap-1 text-[10px] font-bold mt-1.5">
+          <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">
+            {scheduledDrawDateText}
           </span>
-          <span>•</span>
-          <span className="bg-indigo-50 text-indigo-800 px-2 py-0.5 rounded-full font-bold">
-            Rotation {currentSamity.currentRotationIndex || 1} of {currentSamity.totalRotations || 6}
+          <span className="px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100/60">
+            R{currentSamity.currentRotationIndex || 1}/{currentSamity.totalRotations || 6}
           </span>
-          <span>•</span>
-          <span className="text-slate-600 font-medium">
-            (Draw every {currentSamity.rotationsPerDraw || 2} rotations)
+          <span className="px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-100/60">
+            Draw / {currentSamity.rotationsPerDraw || 2}R
           </span>
         </div>
 
@@ -459,14 +456,9 @@ export function WheelDrawView() {
             <div>
               {!monthWinner ? (
                 /* Draw not yet conducted by Admin */
-                <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/90 text-center space-y-1">
-                  <div className="text-xs font-bold text-slate-800 flex items-center justify-center gap-1.5">
-                    <Lock className="w-3.5 h-3.5 text-amber-500" />
-                    <span>Official Draw Reserved for Samity Admin</span>
-                  </div>
-                  <p className="text-[11px] text-slate-500 font-medium">
-                    Scheduled for {scheduledDrawDateText}. Once the Admin draws the wheel, you can press &quot;See Winner&quot; to reveal the spin animation!
-                  </p>
+                <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200 text-center flex items-center justify-center gap-2 text-xs font-bold text-slate-700">
+                  <Lock className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                  <span>Admin Draw on {scheduledDrawDateText}</span>
                 </div>
               ) : (
                 /* Winner is drawn: Member can press "See Winner" */
@@ -477,7 +469,7 @@ export function WheelDrawView() {
                   className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-indigo-600 via-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white font-extrabold text-sm transition shadow-lg shadow-indigo-600/25 active:scale-98 flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <Sparkles className="w-4 h-4 text-amber-300" />
-                  <span>{isSpinning ? 'Spinning Wheel...' : 'See Winner (Spin Wheel Animation)'}</span>
+                  <span>{isSpinning ? 'Spinning...' : 'See Winner (Spin Wheel)'}</span>
                 </button>
               )}
             </div>
@@ -485,25 +477,21 @@ export function WheelDrawView() {
         </div>
       </div>
 
-      {/* MINI-GAME: "GUESS THE NEXT WINNER" (Active 1 day after the draw) */}
+      {/* MINI-GAME: "GUESS THE NEXT WINNER" */}
       {monthWinner && (
-        <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-5 space-y-4">
+        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-4 space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center font-black">
-                🎲
-              </div>
+              <span className="text-base">🎲</span>
               <div>
-                <h3 className="text-sm font-black text-slate-900 flex items-center gap-1.5">
-                  <span>Guess the Next Winner!</span>
-                  <span className="text-[9px] font-black px-1.5 py-0.5 rounded-md bg-amber-100 text-amber-800 uppercase tracking-wider">
-                    For Fun
+                <h3 className="text-xs font-black text-slate-900 flex items-center gap-1.5">
+                  <span>Guess Next Winner</span>
+                  <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-md bg-amber-100 text-amber-800">
+                    Fun
                   </span>
                 </h3>
-                <p className="text-[11px] text-slate-500 font-medium">
-                  {isOneDayAfterDraw
-                    ? `Vote for who will win ${nextMonth}'s lucky pot!`
-                    : `Unlocked 1 day after draw (${scheduledDrawDateText})`}
+                <p className="text-[10px] text-slate-500 font-medium">
+                  {isOneDayAfterDraw ? `Predict ${nextMonth}'s winner` : `Unlocks 1 day after draw`}
                 </p>
               </div>
             </div>
@@ -512,13 +500,9 @@ export function WheelDrawView() {
             <button
               type="button"
               onClick={() => setSimulateOneDayAfter((prev) => !prev)}
-              className={`text-[10px] font-bold px-2 py-1 rounded-lg border transition cursor-pointer ${
-                isOneDayAfterDraw
-                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                  : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'
-              }`}
+              className="text-[10px] font-bold px-2 py-0.5 rounded-lg border bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 transition cursor-pointer"
             >
-              {isOneDayAfterDraw ? 'Game Active' : 'Test Game'}
+              {isOneDayAfterDraw ? 'Active' : 'Test'}
             </button>
           </div>
 

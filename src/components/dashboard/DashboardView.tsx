@@ -49,45 +49,43 @@ export function DashboardView() {
         <div className="absolute -right-8 -bottom-8 w-36 h-36 bg-white/10 rounded-full blur-2xl pointer-events-none" />
 
         <div className="flex items-center justify-between">
-          <span className="text-xs font-medium text-indigo-100 uppercase tracking-wider">
-            My Total Saved
+          <span className="text-xs font-semibold text-indigo-100 uppercase tracking-wider">
+            My Savings
           </span>
-          <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-white/20 text-white backdrop-blur-xs">
+          <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-white/20 text-white backdrop-blur-xs">
             BDT {currentSamity.fixedDepositAmount.toLocaleString()} / mo
           </span>
         </div>
 
-        <div className="text-3xl font-extrabold mt-2 tracking-tight">
+        <div className="text-3xl font-extrabold mt-1.5 tracking-tight">
           BDT {userTotalSaved.toLocaleString()}
         </div>
-        <div className="text-xs text-indigo-200 mt-1 font-medium">
-          {monthsPaidCount} {monthsPaidCount === 1 ? 'month' : 'months'} successfully verified
+        <div className="text-[11px] text-indigo-200 mt-0.5 font-medium">
+          {monthsPaidCount} {monthsPaidCount === 1 ? 'deposit' : 'deposits'} verified
         </div>
 
-        <div className="grid grid-cols-2 gap-2.5 mt-5 pt-4 border-t border-white/15">
+        <div className="grid grid-cols-2 gap-2 mt-4 pt-3.5 border-t border-white/15">
           <div>
-            <div className="text-[11px] text-indigo-200 font-medium">
-              This Month ({currentMonth})
-            </div>
-            <div className="text-sm font-bold flex items-center gap-1.5 mt-0.5">
+            <div className="text-[10px] text-indigo-200 font-medium">Status</div>
+            <div className="text-xs font-bold flex items-center gap-1 mt-0.5">
               {currentMonthPayment?.status === 'VERIFIED' ? (
                 <>
-                  <CheckCircle2 className="w-4 h-4 text-emerald-300" />
-                  <span className="text-emerald-200">Paid & Verified</span>
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-300" />
+                  <span className="text-emerald-200">Paid</span>
                 </>
               ) : currentMonthPayment?.status === 'PENDING' ? (
                 <>
-                  <Clock className="w-4 h-4 text-amber-300" />
-                  <span className="text-amber-200">Pending Approval</span>
+                  <Clock className="w-3.5 h-3.5 text-amber-300" />
+                  <span className="text-amber-200">Pending</span>
                 </>
               ) : (
-                <span className="text-rose-200">Not Paid Yet</span>
+                <span className="text-rose-200">Due</span>
               )}
             </div>
           </div>
           <div>
-            <div className="text-[11px] text-indigo-200 font-medium">Monthly Draw Pot</div>
-            <div className="text-sm font-bold text-amber-300 mt-0.5">
+            <div className="text-[10px] text-indigo-200 font-medium">Draw Pot</div>
+            <div className="text-xs font-bold text-amber-300 mt-0.5">
               BDT {verifiedPot.toLocaleString()}
             </div>
           </div>
@@ -98,29 +96,33 @@ export function DashboardView() {
       <RotationCountdownCard />
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-2 gap-2.5">
+      <div className="grid grid-cols-2 gap-2">
         <button
           type="button"
           onClick={() => setActiveView('pay')}
-          className="p-3.5 rounded-2xl bg-white border border-slate-200 hover:border-indigo-300 shadow-2xs text-left transition active:scale-98 group"
+          className="p-3 rounded-2xl bg-white border border-slate-200 hover:border-indigo-300 shadow-2xs flex items-center gap-3 transition active:scale-98 group cursor-pointer"
         >
-          <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center mb-2 group-hover:bg-indigo-600 group-hover:text-white transition">
+          <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 group-hover:bg-indigo-600 group-hover:text-white transition">
             <ArrowUpRight className="w-4 h-4" />
           </div>
-          <div className="text-xs font-bold text-slate-900">Make Deposit</div>
-          <div className="text-[11px] text-slate-500 font-medium">bKash, Nagad, Bank, Cash</div>
+          <div className="text-left">
+            <div className="text-xs font-bold text-slate-900">Deposit</div>
+            <div className="text-[10px] text-slate-400">bKash, Nagad, Cash</div>
+          </div>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveView('wheel')}
-          className="p-3.5 rounded-2xl bg-white border border-slate-200 hover:border-indigo-300 shadow-2xs text-left transition active:scale-98 group"
+          className="p-3 rounded-2xl bg-white border border-slate-200 hover:border-indigo-300 shadow-2xs flex items-center gap-3 transition active:scale-98 group cursor-pointer"
         >
-          <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center mb-2 group-hover:bg-amber-600 group-hover:text-white transition">
+          <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 group-hover:bg-amber-600 group-hover:text-white transition">
             <Disc className="w-4 h-4" />
           </div>
-          <div className="text-xs font-bold text-slate-900">Lucky Wheel</div>
-          <div className="text-[11px] text-slate-500 font-medium">Monthly draw pot</div>
+          <div className="text-left">
+            <div className="text-xs font-bold text-slate-900">Wheel</div>
+            <div className="text-[10px] text-slate-400">Monthly Draw</div>
+          </div>
         </button>
       </div>
 
