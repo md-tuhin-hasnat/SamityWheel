@@ -1,0 +1,1621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SamityDraw (SamityWheel) — Monthly Samity Deposit &amp; Lottery Draw App</title>
+  <meta name="description" content="Track monthly samity fixed deposits via bKash, Nagad, Bank Transfer, or Cash, verify payment screenshots, and run fair non-repeating monthly lottery wheel draws." />
+  <meta name="keywords" content="samity app bangladesh, monthly deposit lottery, kisti collection app, bkash nagad deposit tracker, rotating savings club, monthly lucky wheel draw" />
+  <meta name="robots" content="index, follow" />
+  <meta name="author" content="SamityDraw" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="SamityDraw — Monthly Samity Deposit &amp; Lottery Draw App" />
+  <meta property="og:description" content="Simple mobile-first monthly fixed deposit tracker with bKash/Nagad receipt verification and a fair non-repeating winner wheel." />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="SamityDraw — Monthly Samity Deposit &amp; Lottery Draw App" />
+  <meta name="twitter:description" content="Manage monthly group deposits, verify payment proofs, and spin the monthly winner wheel." />
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "SamityDraw",
+    "alternateName": "SamityWheel",
+    "applicationCategory": "FinanceApplication",
+    "operatingSystem": "Web, Android, iOS",
+    "description": "Mobile-first monthly fixed deposit and non-repeating lottery wheel management app supporting bKash, Nagad, Bank Transfer, and Cash verification.",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "BDT"
+    }
+  }
+  </script>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #e2e8f0;
+      color: #0f172a;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex justify-center bg-slate-200/70">
+
+  <!-- Mobile-First App Shell -->
+  <div class="w-full max-w-md min-h-screen bg-slate-50 shadow-xl border-x border-slate-200 flex flex-col justify-between relative pb-20">
+
+    <!-- Top Quick Role Switcher (For Testing) -->
+    <div class="bg-slate-900 text-white px-3 py-2">
+      <div class="flex items-center justify-between gap-1.5">
+        <span class="text-[11px] font-semibold text-slate-400">Test As:</span>
+        <div class="flex items-center gap-1 overflow-x-auto">
+          <button id="quickSwitchUser1" type="button" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-[11px] font-medium text-slate-200 transition">
+            Rahim
+          </button>
+          <button id="quickSwitchUser2" type="button" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-[11px] font-medium text-slate-200 transition">
+            Nusrat
+          </button>
+          <button id="quickSwitchAdmin" type="button" class="px-2 py-1 rounded bg-indigo-600 hover:bg-indigo-500 text-[11px] font-medium text-white transition">
+            Admin
+          </button>
+          <button id="quickSwitchAuth" type="button" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-[11px] font-medium text-amber-300 transition">
+            Account
+          </button>
+          <button id="soundToggleBtn" type="button" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-[11px] font-medium text-slate-300 transition" title="Toggle Sound">
+            <span id="soundIcon" class="hidden"></span>
+            <span id="soundLabel">Sound: On</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- App Sticky Header -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-20 px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-2.5">
+        <div class="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center text-white font-bold text-sm shadow-xs">
+          SW
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-base font-bold text-slate-900 leading-none">SamityWheel</h1>
+            <span id="currentMonthBadge" class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700">
+              October 2026
+            </span>
+          </div>
+          <p id="pageHeaderSubtitle" class="text-xs text-slate-500 mt-0.5">Home Overview</p>
+        </div>
+      </div>
+
+      <button id="headerAccountBtn" type="button" class="flex items-center gap-2 pl-2 py-1 pr-2.5 rounded-full bg-slate-100 hover:bg-slate-200 transition">
+        <div id="activeUserAvatar" class="w-7 h-7 rounded-full bg-indigo-600 text-white font-bold text-xs flex items-center justify-center">
+          RA
+        </div>
+        <div class="text-left">
+          <div id="activeUserName" class="text-xs font-semibold text-slate-800 leading-none">Rahim</div>
+          <div id="activeUserRole" class="text-[10px] text-slate-500 leading-none mt-0.5">Member</div>
+        </div>
+      </button>
+    </header>
+
+    <!-- Hidden Legacy Tab Buttons (Preserved for compatibility) -->
+    <div id="navTabsContainer" class="hidden">
+      <button id="tabDashboardBtn" type="button">Home</button>
+      <button id="tabAdminBtn" type="button">Admin</button>
+      <button id="tabAuthBtn" type="button">Account</button>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toastContainer" class="fixed top-14 left-1/2 -translate-x-1/2 z-50 w-11/12 max-w-sm hidden">
+      <div id="toastBox" class="rounded-xl shadow-lg px-4 py-3 flex items-center justify-between gap-3 bg-slate-900 text-white">
+        <span id="toastIcon" class="text-xs font-bold px-2 py-0.5 rounded bg-indigo-600">INFO</span>
+        <div class="flex-1 text-xs font-medium" id="toastMessage">Updated</div>
+        <button id="toastCloseBtn" type="button" class="text-slate-400 hover:text-white text-xs font-bold px-1">Close</button>
+      </div>
+    </div>
+
+    <!-- ==================== MULTI-PAGE CONTENT AREA ==================== -->
+    <main class="flex-1 p-4 space-y-4">
+
+      <!-- PAGE 1: HOME (OVERVIEW & MY HISTORY) -->
+      <section id="viewDashboard" class="space-y-4">
+
+        <!-- Primary Balance Card -->
+        <div class="bg-gradient-to-br from-indigo-600 to-violet-700 rounded-2xl p-5 text-white shadow-sm">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-medium text-indigo-100">My Total Saved</span>
+            <span id="kpiFixedAmountText" class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-white/15 text-white">
+              BDT 5,000 / mo
+            </span>
+          </div>
+          <div id="kpiMyTotalDeposit" class="text-3xl font-extrabold mt-1">BDT 15,000</div>
+          <div id="kpiMyMonthsCount" class="text-xs text-indigo-100 mt-1">3 months paid</div>
+
+          <div class="grid grid-cols-2 gap-2.5 mt-4 pt-4 border-t border-white/15">
+            <div>
+              <div class="text-[11px] text-indigo-200">This Month</div>
+              <div class="mt-1">
+                <span id="kpiMyMonthStatusBadge" class="inline-block px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-400/20 text-emerald-100">
+                  Verified
+                </span>
+              </div>
+              <div id="kpiMyMonthSubtext" class="hidden"></div>
+            </div>
+            <div>
+              <div class="text-[11px] text-indigo-200">Wheel Status</div>
+              <div id="kpiMyEligibility" class="text-xs font-bold text-white mt-1">In Wheel Draw</div>
+              <div id="kpiMyEligibilitySub" class="hidden"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Monthly Pool Summary Card -->
+        <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs flex items-center justify-between">
+          <div>
+            <div class="text-xs text-slate-500 font-medium">This Month's Prize Pot</div>
+            <div id="kpiCurrentPot" class="text-xl font-extrabold text-slate-900 mt-0.5">BDT 20,000</div>
+            <div id="kpiCurrentPotSub" class="text-xs text-slate-400">4 verified payments</div>
+          </div>
+          <div class="flex flex-col gap-1.5">
+            <button id="homeGoPayBtn" type="button" class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold transition">
+              Pay Deposit
+            </button>
+            <button id="homeGoWheelBtn" type="button" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold transition">
+              Open Wheel
+            </button>
+          </div>
+        </div>
+
+        <!-- My Recent Deposits List (Mobile Cards) -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+          <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+            <h2 class="text-sm font-bold text-slate-900">My Payment History</h2>
+            <span class="text-xs text-slate-400">Tap Receipt to view</span>
+          </div>
+          <div id="myDepositsCardList" class="divide-y divide-slate-100">
+            <!-- Populated by JS -->
+          </div>
+          <!-- Hidden table body kept for ID compatibility -->
+          <table class="hidden"><tbody id="myDepositsTableBody"></tbody></table>
+        </div>
+
+      </section>
+
+      <!-- PAGE 2: PAY MONTHLY DEPOSIT -->
+      <section id="viewPay" class="hidden space-y-4">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+          <div class="px-4 py-3.5 border-b border-slate-100 flex items-center justify-between">
+            <div>
+              <h2 class="text-sm font-bold text-slate-900">Add Monthly Deposit</h2>
+              <p class="text-xs text-slate-500" id="formMonthLabel">October 2026</p>
+            </div>
+            <span id="fixedDepositPill" class="px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 text-xs font-bold">
+              BDT 5,000
+            </span>
+          </div>
+
+          <form id="depositForm" class="p-4 space-y-4">
+            <!-- Step 1: Method -->
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-2">1. Select Payment Method</label>
+              <div class="grid grid-cols-2 gap-2">
+                <button type="button" data-method="bKash" class="method-btn p-3 rounded-xl border-2 border-indigo-600 bg-indigo-50/60 text-left transition">
+                  <div class="text-xs font-bold text-slate-900">bKash</div>
+                  <div class="text-[11px] text-slate-500">TrxID + Screenshot</div>
+                </button>
+                <button type="button" data-method="Nagad" class="method-btn p-3 rounded-xl border-2 border-slate-200 bg-white text-left transition">
+                  <div class="text-xs font-bold text-slate-900">Nagad</div>
+                  <div class="text-[11px] text-slate-500">TrxID + Screenshot</div>
+                </button>
+                <button type="button" data-method="Bank Transfer" class="method-btn p-3 rounded-xl border-2 border-slate-200 bg-white text-left transition">
+                  <div class="text-xs font-bold text-slate-900">Bank Transfer</div>
+                  <div class="text-[11px] text-slate-500">Ref + Screenshot</div>
+                </button>
+                <button type="button" data-method="Cash on Hand" class="method-btn p-3 rounded-xl border-2 border-slate-200 bg-white text-left transition">
+                  <div class="text-xs font-bold text-slate-900">Cash on Hand</div>
+                  <div class="text-[11px] text-slate-500">Direct Handover</div>
+                </button>
+              </div>
+            </div>
+
+            <!-- Send To Box -->
+            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between text-xs">
+              <div>
+                <div class="text-slate-500" id="paymentInstructionTitle">Send to Admin bKash:</div>
+                <div class="font-bold text-slate-900 mt-0.5" id="paymentInstructionDetail">01700-998877</div>
+              </div>
+              <div class="text-right">
+                <div class="text-slate-500">Fixed Amount</div>
+                <div class="font-bold text-indigo-600">BDT <span id="depositAmountInput">5,000</span></div>
+              </div>
+            </div>
+
+            <!-- Step 2 & 3: TrxID & Screenshot -->
+            <div id="digitalFieldsContainer" class="space-y-4">
+              <div>
+                <label for="trxIdInput" class="block text-xs font-semibold text-slate-700 mb-1">
+                  2. Transaction Number (TrxID)
+                </label>
+                <div class="flex gap-2">
+                  <input id="trxIdInput" type="text" placeholder="Enter TrxID"
+                    class="flex-1 px-3 py-2.5 rounded-xl border border-slate-300 text-sm uppercase focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                  <button id="generateSampleTrxBtn" type="button" class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold">
+                    Auto-Fill
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1.5">
+                  3. Transaction Screenshot
+                </label>
+                <div class="grid grid-cols-2 gap-2">
+                  <label for="screenshotFileInput" class="cursor-pointer py-2.5 px-3 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 text-center transition">
+                    Upload Image
+                    <input id="screenshotFileInput" type="file" accept="image/*" class="hidden" />
+                  </label>
+                  <button id="useSampleScreenshotBtn" type="button" class="py-2.5 px-3 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold transition">
+                    Sample Receipt
+                  </button>
+                </div>
+
+                <!-- Preview -->
+                <div id="screenshotPreviewWrapper" class="mt-3 hidden p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between gap-2">
+                  <div class="flex items-center gap-2.5">
+                    <img id="screenshotPreviewImg" src="" alt="Receipt Preview" class="w-11 h-11 object-cover rounded-lg border border-slate-300 max-w-full" />
+                    <div>
+                      <div id="screenshotFileName" class="text-xs font-semibold text-slate-800 truncate max-w-[160px]">receipt.png</div>
+                      <div class="text-[11px] text-emerald-600 font-medium">Attached</div>
+                    </div>
+                  </div>
+                  <button id="clearScreenshotBtn" type="button" class="text-xs text-rose-600 font-semibold px-2">Remove</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Cash Fields -->
+            <div id="cashFieldsContainer" class="hidden">
+              <label for="cashNoteInput" class="block text-xs font-semibold text-slate-700 mb-1">
+                2. Receiver Name / Cash Note
+              </label>
+              <input id="cashNoteInput" type="text" placeholder="e.g. Paid cash to Admin Karim"
+                class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            </div>
+
+            <button id="submitDepositBtn" type="submit" class="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm transition shadow-xs">
+              Submit Payment
+            </button>
+          </form>
+        </div>
+      </section>
+
+      <!-- PAGE 3: LIVE LOTTERY WHEEL -->
+      <section id="viewWheel" class="hidden space-y-4">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-5 flex flex-col items-center text-center">
+          <div class="w-full flex items-center justify-between mb-1">
+            <span class="text-xs font-bold text-indigo-600 uppercase">Monthly Draw</span>
+            <span id="wheelEligibleCountBadge" class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700">
+              4 Eligible
+            </span>
+          </div>
+          <h2 class="text-base font-bold text-slate-900">Lucky Wheel Draw</h2>
+          <p class="text-xs text-slate-500 mt-0.5">Past winners are excluded automatically</p>
+
+          <!-- Winner Banner -->
+          <div id="dashboardWinnerBanner" class="w-full mt-3 p-3 rounded-xl bg-amber-500 text-white hidden">
+            <div class="text-[11px] uppercase font-bold text-amber-100">Winner for <span id="bannerMonthName">October 2026</span></div>
+            <div id="bannerWinnerName" class="text-base font-extrabold mt-0.5">Farhana Akter</div>
+            <div id="bannerWinnerPot" class="text-xs text-amber-50">Won BDT 20,000</div>
+          </div>
+
+          <!-- Wheel Canvas -->
+          <div class="relative w-64 h-64 flex items-center justify-center my-4">
+            <!-- SVG Pointer Triangle at Top -->
+            <div class="absolute -top-2.5 z-10">
+              <svg class="w-6 h-6 text-slate-900 drop-shadow" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 21L3 5h18l-9 16z" />
+              </svg>
+            </div>
+            <canvas id="dashboardWheelCanvas" width="280" height="280" class="w-full h-full max-w-full h-auto"></canvas>
+          </div>
+
+          <button id="goToAdminWheelBtn" type="button" class="w-full py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold transition">
+            Open Admin Wheel Controls
+          </button>
+        </div>
+      </section>
+
+      <!-- PAGE 4: WINNERS & MEMBER ROSTER -->
+      <section id="viewWinners" class="hidden space-y-4">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+          <div class="px-4 py-3.5 border-b border-slate-100">
+            <h2 class="text-sm font-bold text-slate-900">Members &amp; Past Winners</h2>
+            <p class="text-xs text-slate-500">Each member can win only once per cycle</p>
+          </div>
+          <div id="memberRosterList" class="divide-y divide-slate-100">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+      </section>
+
+      <!-- PAGE 5: ADMIN VERIFY & WHEEL CONTROL -->
+      <section id="viewAdmin" class="hidden space-y-4">
+
+        <!-- Admin Top Controls Card -->
+        <div class="bg-slate-900 text-white rounded-2xl p-4 space-y-3">
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="text-[11px] font-semibold text-indigo-300 uppercase">Admin Panel</div>
+              <h2 class="text-sm font-bold" id="adminMonthLabel">October 2026</h2>
+            </div>
+            <button id="advanceNextMonthBtn" type="button" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold transition">
+              Next Month
+            </button>
+          </div>
+
+          <div class="flex items-center justify-between pt-2 border-t border-slate-800 text-xs">
+            <label for="adminFixedDepositInput" class="text-slate-300">Monthly Fixed Deposit (BDT)</label>
+            <div class="flex items-center gap-1.5">
+              <input id="adminFixedDepositInput" type="number" min="500" step="500" value="5000"
+                class="w-20 px-2 py-1 rounded-lg bg-slate-800 border border-slate-700 text-white text-xs font-bold" />
+              <button id="saveFixedDepositBtn" type="button" class="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-semibold">
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Admin Sub-Tab Switcher (Verify Queue vs Spin Wheel) -->
+        <div class="grid grid-cols-2 bg-slate-200/80 p-1 rounded-xl text-xs font-semibold">
+          <button id="adminSubTabVerifyBtn" type="button" class="py-2 rounded-lg bg-white text-slate-900 shadow-xs">
+            Verify Payments (<span id="pendingCountBadge">2</span>)
+          </button>
+          <button id="adminSubTabSpinBtn" type="button" class="py-2 rounded-lg text-slate-600 hover:text-slate-900">
+            Spin Wheel Draw
+          </button>
+        </div>
+
+        <!-- Admin Sub-View A: Payment Verification List -->
+        <div id="adminVerifySection" class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+          <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-800">Submitted Deposits</span>
+            <div class="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg text-[11px] font-semibold">
+              <button type="button" data-filter="all" class="admin-filter-btn px-2 py-1 rounded bg-white text-slate-900 shadow-2xs">All</button>
+              <button type="button" data-filter="pending" class="admin-filter-btn px-2 py-1 rounded text-slate-600">Pending</button>
+              <button type="button" data-filter="verified" class="admin-filter-btn px-2 py-1 rounded text-slate-600">Verified</button>
+            </div>
+          </div>
+
+          <div id="adminPaymentsCardList" class="divide-y divide-slate-100">
+            <!-- Populated by JS -->
+          </div>
+          <!-- Hidden table body for ID compatibility -->
+          <table class="hidden"><tbody id="adminPaymentsTableBody"></tbody></table>
+        </div>
+
+        <!-- Admin Sub-View B: Wheel Draw Control -->
+        <div id="adminSpinSection" class="hidden bg-white rounded-2xl border border-slate-200 shadow-xs p-5 flex flex-col items-center text-center">
+          <div class="w-full flex items-center justify-between mb-1">
+            <span class="text-xs font-bold text-indigo-600" id="wheelMonthLabel">October 2026</span>
+            <span id="adminPotBadge" class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800">
+              Pot: BDT 20,000
+            </span>
+          </div>
+
+          <div class="relative w-60 h-60 flex items-center justify-center my-3">
+            <div class="absolute -top-2.5 z-10">
+              <svg class="w-6 h-6 text-slate-900 drop-shadow" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 21L3 5h18l-9 16z" />
+              </svg>
+            </div>
+            <canvas id="adminWheelCanvas" width="260" height="260" class="w-full h-full max-w-full h-auto"></canvas>
+          </div>
+
+          <div id="adminWinnerResultBox" class="w-full my-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 hidden">
+            <div class="text-[11px] font-bold uppercase text-emerald-700">Selected Winner</div>
+            <div id="adminWinnerResultName" class="text-base font-extrabold mt-0.5">Rahim Ahmed</div>
+            <div id="adminWinnerResultDetails" class="text-xs text-emerald-700">Awarded BDT 20,000</div>
+          </div>
+
+          <button id="spinWheelBtn" type="button" class="w-full py-3 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm transition disabled:opacity-50">
+            Spin Wheel Now
+          </button>
+
+          <div class="w-full mt-4 pt-3 border-t border-slate-100 text-left">
+            <div class="text-xs font-bold text-slate-700 mb-2">Wheel Pool Status</div>
+            <div id="adminEligibilitySummary" class="space-y-1.5 text-xs"></div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- PAGE 6: ACCOUNT (LOGIN / SIGNUP) -->
+      <section id="viewAuth" class="hidden space-y-4">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+          <div class="grid grid-cols-2 border-b border-slate-200 bg-slate-50 text-xs font-bold">
+            <button id="authModeLoginBtn" type="button" class="py-3 text-center border-b-2 border-indigo-600 text-indigo-600 bg-white">
+              Log In
+            </button>
+            <button id="authModeSignupBtn" type="button" class="py-3 text-center border-b-2 border-transparent text-slate-500">
+              Sign Up
+            </button>
+          </div>
+
+          <!-- Login Form -->
+          <form id="loginForm" class="p-4 space-y-3.5">
+            <div>
+              <label for="loginPhone" class="block text-xs font-semibold text-slate-600 mb-1">Phone or Email</label>
+              <input id="loginPhone" type="text" required value="01711-000001"
+                class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-sm" />
+            </div>
+            <div>
+              <label for="loginPassword" class="block text-xs font-semibold text-slate-600 mb-1">Password</label>
+              <input id="loginPassword" type="password" required value="123456"
+                class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-sm" />
+            </div>
+            <button type="submit" class="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm">
+              Log In
+            </button>
+
+            <div class="pt-3 border-t border-slate-100 grid grid-cols-2 gap-2 text-xs">
+              <button id="fillMemberDemoBtn" type="button" class="p-2 rounded-lg border border-slate-200 text-left">
+                <div class="font-semibold text-slate-800">Member Demo</div>
+                <div class="text-slate-500 text-[11px]">01711-000001</div>
+              </button>
+              <button id="fillAdminDemoBtn" type="button" class="p-2 rounded-lg border border-indigo-200 bg-indigo-50/40 text-left">
+                <div class="font-semibold text-indigo-900">Admin Demo</div>
+                <div class="text-indigo-600 text-[11px]">admin@samity.com</div>
+              </button>
+            </div>
+          </form>
+
+          <!-- Sign Up Form -->
+          <form id="signupForm" class="p-4 space-y-3.5 hidden">
+            <div>
+              <label for="signupName" class="block text-xs font-semibold text-slate-600 mb-1">Full Name</label>
+              <input id="signupName" type="text" required placeholder="Your Name"
+                class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-sm" />
+            </div>
+            <div>
+              <label for="signupPhone" class="block text-xs font-semibold text-slate-600 mb-1">Mobile Number</label>
+              <input id="signupPhone" type="text" required placeholder="017XX-XXXXXX"
+                class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-sm" />
+            </div>
+            <div>
+              <label for="signupPassword" class="block text-xs font-semibold text-slate-600 mb-1">Password</label>
+              <input id="signupPassword" type="password" required placeholder="Password"
+                class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-sm" />
+            </div>
+            <div>
+              <label for="signupRole" class="block text-xs font-semibold text-slate-600 mb-1">Role</label>
+              <select id="signupRole" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-sm bg-white">
+                <option value="member">Member</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
+            <button type="submit" class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm">
+              Create Account
+            </button>
+          </form>
+        </div>
+
+        <div class="text-center">
+          <button id="resetDemoDataBtn" type="button" class="text-xs font-semibold text-rose-600 hover:underline">
+            Reset App Demo Data
+          </button>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- ==================== FIXED MOBILE BOTTOM NAVIGATION BAR ==================== -->
+    <nav class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white border-t border-slate-200 z-30 grid grid-cols-5 py-1.5 px-1">
+      <button type="button" data-nav-page="dashboard" class="mobile-nav-btn flex flex-col items-center justify-center py-1 text-indigo-600">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l9-9 9 9M5 10v10a1 1 0 001 1h4m10-11v10a1 1 0 01-1 1h-4m-6 0h6" />
+        </svg>
+        <span class="text-[11px] font-semibold mt-0.5">Home</span>
+      </button>
+
+      <button type="button" data-nav-page="pay" class="mobile-nav-btn flex flex-col items-center justify-center py-1 text-slate-500">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+        </svg>
+        <span class="text-[11px] font-semibold mt-0.5">Pay</span>
+      </button>
+
+      <button type="button" data-nav-page="wheel" class="mobile-nav-btn flex flex-col items-center justify-center py-1 text-slate-500">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="9" />
+          <circle cx="12" cy="12" r="2" />
+          <path stroke-linecap="round" d="M12 3v7m0 4v7M3 12h7m4 0h7" />
+        </svg>
+        <span class="text-[11px] font-semibold mt-0.5">Wheel</span>
+      </button>
+
+      <button type="button" data-nav-page="winners" class="mobile-nav-btn flex flex-col items-center justify-center py-1 text-slate-500">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+        <span class="text-[11px] font-semibold mt-0.5">Winners</span>
+      </button>
+
+      <button type="button" data-nav-page="admin" class="mobile-nav-btn relative flex flex-col items-center justify-center py-1 text-slate-500">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+        </svg>
+        <span class="text-[11px] font-semibold mt-0.5">Admin</span>
+        <span id="bottomNavPendingDot" class="absolute top-1 right-4 w-2 h-2 rounded-full bg-amber-500"></span>
+      </button>
+    </nav>
+
+  </div>
+
+  <!-- ==================== MODAL: SCREENSHOT RECEIPT VIEWER ==================== -->
+  <div id="screenshotModal" class="fixed inset-0 z-50 bg-slate-900/70 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-sm w-full overflow-hidden shadow-xl border border-slate-200">
+      <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+        <div>
+          <h4 id="modalTitle" class="text-sm font-bold text-slate-900">Payment Receipt</h4>
+          <p id="modalSubtitle" class="text-xs text-slate-500">bKash</p>
+        </div>
+        <button id="closeModalBtn" type="button" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs">Close</button>
+      </div>
+      <div class="p-4 bg-slate-50 flex flex-col items-center">
+        <img id="modalScreenshotImg" src="" alt="Receipt Proof" class="max-h-72 w-auto max-w-full rounded-xl border border-slate-300" />
+      </div>
+      <div class="px-4 py-3 bg-white border-t border-slate-100 flex justify-end">
+        <button id="closeModalFooterBtn" type="button" class="w-full py-2 rounded-xl bg-slate-900 text-white text-xs font-semibold">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // =========================================================================
+    // 1. SAMPLE SVG RECEIPT GENERATOR (No emojis, clean mobile receipt)
+    // =========================================================================
+    function createSampleReceiptDataUri(method, trxId, amount, senderName, month) {
+      const colors = {
+        'bKash': { bg: '#fdf2f8', header: '#db2777' },
+        'Nagad': { bg: '#fff7ed', header: '#ea580c' },
+        'Bank Transfer': { bg: '#eff6ff', header: '#1d4ed8' },
+        'Cash on Hand': { bg: '#ecfdf5', header: '#059669' }
+      };
+      const c = colors[method] || colors['bKash'];
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="340" height="380" viewBox="0 0 340 380">
+        <rect width="340" height="380" rx="16" fill="${c.bg}" stroke="${c.header}" stroke-width="2"/>
+        <rect width="340" height="72" rx="14" fill="${c.header}"/>
+        <text x="20" y="36" fill="#ffffff" font-family="Inter, sans-serif" font-size="18" font-weight="bold">${method} Receipt</text>
+        <text x="20" y="56" fill="#ffffff" opacity="0.9" font-family="Inter, sans-serif" font-size="11">Monthly Fixed Deposit</text>
+        <rect x="16" y="88" width="308" height="270" rx="12" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+        <text x="32" y="120" fill="#16a34a" font-family="Inter, sans-serif" font-size="14" font-weight="bold">PAYMENT COMPLETED</text>
+        <line x1="32" y1="136" x2="308" y2="136" stroke="#f1f5f9" stroke-width="2"/>
+        <text x="32" y="164" fill="#64748b" font-family="Inter, sans-serif" font-size="11">Transaction ID</text>
+        <text x="32" y="184" fill="#0f172a" font-family="monospace" font-size="15" font-weight="bold">${trxId}</text>
+        <text x="32" y="220" fill="#64748b" font-family="Inter, sans-serif" font-size="11">Member</text>
+        <text x="32" y="240" fill="#0f172a" font-family="Inter, sans-serif" font-size="14" font-weight="bold">${senderName}</text>
+        <text x="32" y="276" fill="#64748b" font-family="Inter, sans-serif" font-size="11">Month</text>
+        <text x="32" y="296" fill="#0f172a" font-family="Inter, sans-serif" font-size="13" font-weight="bold">${month}</text>
+        <text x="190" y="276" fill="#64748b" font-family="Inter, sans-serif" font-size="11">Amount</text>
+        <text x="190" y="298" fill="${c.header}" font-family="Inter, sans-serif" font-size="18" font-weight="bold">BDT ${amount}</text>
+      </svg>`;
+      return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+    }
+
+    // =========================================================================
+    // 2. STATE & STORAGE
+    // =========================================================================
+    const STORAGE_KEY = 'samity_wheel_mobile_v2';
+    const AVAILABLE_MONTHS = [
+      'August 2026',
+      'September 2026',
+      'October 2026',
+      'November 2026',
+      'December 2026',
+      'January 2027'
+    ];
+
+    function getDefaultState() {
+      return {
+        fixedDepositAmount: 5000,
+        currentMonthIndex: 2,
+        currentUserId: 'u1',
+        activeView: 'dashboard', // 'dashboard' | 'pay' | 'wheel' | 'winners' | 'admin' | 'auth'
+        adminSubTab: 'verify',   // 'verify' | 'spin'
+        adminFilter: 'all',
+        selectedMethod: 'bKash',
+        soundEnabled: true,
+        users: [
+          { id: 'admin1', name: 'Karim Uddin', phone: 'admin@samity.com', password: 'admin', role: 'admin', hasWon: false, wonMonth: null, wonAmount: 0 },
+          { id: 'u1', name: 'Rahim Ahmed', phone: '01711-000001', password: '123456', role: 'member', hasWon: false, wonMonth: null, wonAmount: 0 },
+          { id: 'u2', name: 'Nusrat Jahan', phone: '01812-000002', password: '123456', role: 'member', hasWon: false, wonMonth: null, wonAmount: 0 },
+          { id: 'u3', name: 'Tanvir Hasan', phone: '01913-000003', password: '123456', role: 'member', hasWon: false, wonMonth: null, wonAmount: 0 },
+          { id: 'u4', name: 'Sadia Islam', phone: '01614-000004', password: '123456', role: 'member', hasWon: false, wonMonth: null, wonAmount: 0 },
+          { id: 'u5', name: 'Mehedi Hasan', phone: '01515-000005', password: '123456', role: 'member', hasWon: true, wonMonth: 'August 2026', wonAmount: 30000 },
+          { id: 'u6', name: 'Farhana Akter', phone: '01716-000006', password: '123456', role: 'member', hasWon: true, wonMonth: 'September 2026', wonAmount: 30000 }
+        ],
+        payments: [
+          { id: 'p1', userId: 'u1', month: 'August 2026', amount: 5000, method: 'bKash', trxId: 'BKA8011RAH', screenshot: createSampleReceiptDataUri('bKash', 'BKA8011RAH', 5000, 'Rahim Ahmed', 'August 2026'), status: 'verified' },
+          { id: 'p2', userId: 'u2', month: 'August 2026', amount: 5000, method: 'Nagad', trxId: 'NGD8012NUS', screenshot: createSampleReceiptDataUri('Nagad', 'NGD8012NUS', 5000, 'Nusrat Jahan', 'August 2026'), status: 'verified' },
+          { id: 'p3', userId: 'u3', month: 'August 2026', amount: 5000, method: 'Bank Transfer', trxId: 'BNK8013TAN', screenshot: createSampleReceiptDataUri('Bank Transfer', 'BNK8013TAN', 5000, 'Tanvir Hasan', 'August 2026'), status: 'verified' },
+          { id: 'p4', userId: 'u4', month: 'August 2026', amount: 5000, method: 'Cash on Hand', trxId: 'Paid to Admin', screenshot: createSampleReceiptDataUri('Cash on Hand', 'CASH-AUG-04', 5000, 'Sadia Islam', 'August 2026'), status: 'verified' },
+          { id: 'p5', userId: 'u5', month: 'August 2026', amount: 5000, method: 'bKash', trxId: 'BKA8015MEH', screenshot: createSampleReceiptDataUri('bKash', 'BKA8015MEH', 5000, 'Mehedi Hasan', 'August 2026'), status: 'verified' },
+          { id: 'p6', userId: 'u6', month: 'August 2026', amount: 5000, method: 'Nagad', trxId: 'NGD8016FAR', screenshot: createSampleReceiptDataUri('Nagad', 'NGD8016FAR', 5000, 'Farhana Akter', 'August 2026'), status: 'verified' },
+
+          { id: 'p7', userId: 'u1', month: 'September 2026', amount: 5000, method: 'bKash', trxId: 'BKA9021RAH', screenshot: createSampleReceiptDataUri('bKash', 'BKA9021RAH', 5000, 'Rahim Ahmed', 'September 2026'), status: 'verified' },
+          { id: 'p8', userId: 'u2', month: 'September 2026', amount: 5000, method: 'Nagad', trxId: 'NGD9022NUS', screenshot: createSampleReceiptDataUri('Nagad', 'NGD9022NUS', 5000, 'Nusrat Jahan', 'September 2026'), status: 'verified' },
+          { id: 'p9', userId: 'u3', month: 'September 2026', amount: 5000, method: 'Bank Transfer', trxId: 'BNK9023TAN', screenshot: createSampleReceiptDataUri('Bank Transfer', 'BNK9023TAN', 5000, 'Tanvir Hasan', 'September 2026'), status: 'verified' },
+          { id: 'p10', userId: 'u4', month: 'September 2026', amount: 5000, method: 'Cash on Hand', trxId: 'Paid to Admin', screenshot: createSampleReceiptDataUri('Cash on Hand', 'CASH-SEP-04', 5000, 'Sadia Islam', 'September 2026'), status: 'verified' },
+          { id: 'p11', userId: 'u5', month: 'September 2026', amount: 5000, method: 'bKash', trxId: 'BKA9025MEH', screenshot: createSampleReceiptDataUri('bKash', 'BKA9025MEH', 5000, 'Mehedi Hasan', 'September 2026'), status: 'verified' },
+          { id: 'p12', userId: 'u6', month: 'September 2026', amount: 5000, method: 'Nagad', trxId: 'NGD9026FAR', screenshot: createSampleReceiptDataUri('Nagad', 'NGD9026FAR', 5000, 'Farhana Akter', 'September 2026'), status: 'verified' },
+
+          { id: 'p13', userId: 'u1', month: 'October 2026', amount: 5000, method: 'bKash', trxId: 'BKA1031RAH', screenshot: createSampleReceiptDataUri('bKash', 'BKA1031RAH', 5000, 'Rahim Ahmed', 'October 2026'), status: 'verified' },
+          { id: 'p14', userId: 'u3', month: 'October 2026', amount: 5000, method: 'Bank Transfer', trxId: 'CITY1033TAN', screenshot: createSampleReceiptDataUri('Bank Transfer', 'CITY1033TAN', 5000, 'Tanvir Hasan', 'October 2026'), status: 'pending' },
+          { id: 'p15', userId: 'u4', month: 'October 2026', amount: 5000, method: 'Nagad', trxId: 'NGD1034SAD', screenshot: createSampleReceiptDataUri('Nagad', 'NGD1034SAD', 5000, 'Sadia Islam', 'October 2026'), status: 'pending' },
+          { id: 'p16', userId: 'u5', month: 'October 2026', amount: 5000, method: 'bKash', trxId: 'BKA1035MEH', screenshot: createSampleReceiptDataUri('bKash', 'BKA1035MEH', 5000, 'Mehedi Hasan', 'October 2026'), status: 'verified' },
+          { id: 'p17', userId: 'u6', month: 'October 2026', amount: 5000, method: 'Cash on Hand', trxId: 'Paid to Admin', screenshot: createSampleReceiptDataUri('Cash on Hand', 'CASH-OCT-06', 5000, 'Farhana Akter', 'October 2026'), status: 'verified' }
+        ],
+        winnersHistory: [
+          { month: 'August 2026', userId: 'u5', userName: 'Mehedi Hasan', amount: 30000 },
+          { month: 'September 2026', userId: 'u6', userName: 'Farhana Akter', amount: 30000 }
+        ]
+      };
+    }
+
+    let state = loadState();
+    let attachedScreenshotDataUri = '';
+    let isSpinning = false;
+    let currentWheelAngle = 0;
+    let spinAnimFrameId = null;
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) return JSON.parse(raw);
+      } catch (e) {}
+      return getDefaultState();
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      } catch (e) {}
+    }
+
+    // =========================================================================
+    // 3. WEB AUDIO SOUND EFFECTS
+    // =========================================================================
+    let audioCtx = null;
+    function ensureAudioContext() {
+      if (!state.soundEnabled) return null;
+      try {
+        if (!audioCtx) {
+          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          if (AudioContextClass) audioCtx = new AudioContextClass();
+        }
+        if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+      } catch (e) {}
+      return audioCtx;
+    }
+
+    function playTickSound() {
+      const ctx = ensureAudioContext();
+      if (!ctx) return;
+      try {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(600, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(220, ctx.currentTime + 0.03);
+        gain.gain.setValueAtTime(0.07, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.03);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.035);
+      } catch (e) {}
+    }
+
+    function playWinnerFanfare() {
+      const ctx = ensureAudioContext();
+      if (!ctx) return;
+      try {
+        [523.25, 659.25, 783.99, 1046.5].forEach((freq, idx) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sine';
+          const startTime = ctx.currentTime + idx * 0.1;
+          osc.frequency.setValueAtTime(freq, startTime);
+          gain.gain.setValueAtTime(0.12, startTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.3);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(startTime);
+          osc.stop(startTime + 0.32);
+        });
+      } catch (e) {}
+    }
+
+    // =========================================================================
+    // 4. HELPERS
+    // =========================================================================
+    function getCurrentMonth() {
+      return AVAILABLE_MONTHS[state.currentMonthIndex] || 'October 2026';
+    }
+
+    function getCurrentUser() {
+      return state.users.find(u => u.id === state.currentUserId) || state.users[1];
+    }
+
+    function getMemberUsers() {
+      return state.users.filter(u => u.role === 'member');
+    }
+
+    function getEligibleWheelUsers() {
+      return getMemberUsers().filter(u => !u.hasWon);
+    }
+
+    function getMonthVerifiedPot(month) {
+      return state.payments
+        .filter(p => p.month === month && p.status === 'verified')
+        .reduce((sum, p) => sum + Number(p.amount), 0);
+    }
+
+    function getUserTotalVerifiedDeposit(userId) {
+      return state.payments
+        .filter(p => p.userId === userId && p.status === 'verified')
+        .reduce((sum, p) => sum + Number(p.amount), 0);
+    }
+
+    function showToast(message, label = 'OK') {
+      const container = document.getElementById('toastContainer');
+      document.getElementById('toastMessage').textContent = message;
+      document.getElementById('toastIcon').textContent = label;
+      container.classList.remove('hidden');
+      clearTimeout(window._toastTimer);
+      window._toastTimer = setTimeout(() => {
+        container.classList.add('hidden');
+      }, 3200);
+    }
+
+    // =========================================================================
+    // 5. WHEEL RENDERING & SPINNING
+    // =========================================================================
+    const WHEEL_COLORS = ['#4f46e5', '#0891b2', '#059669', '#d97706', '#db2777', '#7c3aed', '#2563eb'];
+
+    function drawWheelOnCanvas(canvasId, angleOffset = 0) {
+      const canvas = document.getElementById(canvasId);
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const eligible = getEligibleWheelUsers();
+      const width = canvas.width;
+      const height = canvas.height;
+      const cx = width / 2;
+      const cy = height / 2;
+      const radius = Math.min(cx, cy) - 8;
+
+      ctx.clearRect(0, 0, width, height);
+
+      if (eligible.length === 0) {
+        ctx.fillStyle = '#e2e8f0';
+        ctx.beginPath();
+        ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#475569';
+        ctx.font = 'bold 13px Inter, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Cycle Complete', cx, cy);
+        return;
+      }
+
+      const sliceAngle = (Math.PI * 2) / eligible.length;
+
+      eligible.forEach((member, i) => {
+        const startAngle = angleOffset + i * sliceAngle;
+        const endAngle = startAngle + sliceAngle;
+
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.arc(cx, cy, radius, startAngle, endAngle);
+        ctx.closePath();
+        ctx.fillStyle = WHEEL_COLORS[i % WHEEL_COLORS.length];
+        ctx.fill();
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = '#ffffff';
+        ctx.stroke();
+
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(startAngle + sliceAngle / 2);
+        ctx.textAlign = 'right';
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 12px Inter, sans-serif';
+        const firstName = member.name.split(' ')[0];
+        ctx.fillText(firstName, radius - 16, 4);
+        ctx.restore();
+      });
+
+      ctx.beginPath();
+      ctx.arc(cx, cy, 22, 0, Math.PI * 2);
+      ctx.fillStyle = '#ffffff';
+      ctx.fill();
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = '#0f172a';
+      ctx.stroke();
+
+      ctx.fillStyle = '#0f172a';
+      ctx.font = 'bold 10px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('DRAW', cx, cy + 3.5);
+    }
+
+    function renderBothWheels() {
+      drawWheelOnCanvas('dashboardWheelCanvas', currentWheelAngle);
+      drawWheelOnCanvas('adminWheelCanvas', currentWheelAngle);
+    }
+
+    function spinLotteryWheel() {
+      if (isSpinning) return;
+      const month = getCurrentMonth();
+      const existingWinner = state.winnersHistory.find(w => w.month === month);
+      if (existingWinner) {
+        showToast(`${existingWinner.userName} already won ${month}. Tap Next Month to continue.`, 'INFO');
+        return;
+      }
+
+      const eligible = getEligibleWheelUsers();
+      if (eligible.length === 0) {
+        showToast('All members have won once in this cycle.', 'DONE');
+        return;
+      }
+
+      const pot = getMonthVerifiedPot(month);
+      if (pot <= 0) {
+        showToast('Verify at least one deposit before spinning.', 'ALERT');
+        return;
+      }
+
+      isSpinning = true;
+      renderAll();
+
+      const winningIndex = Math.floor(Math.random() * eligible.length);
+      const winner = eligible[winningIndex];
+      const sliceAngle = (Math.PI * 2) / eligible.length;
+      const pointerAngle = (3 * Math.PI) / 2;
+      const targetSliceCenter = winningIndex * sliceAngle + sliceAngle / 2;
+      const extraSpins = 6 * Math.PI * 2;
+      const startAngle = currentWheelAngle % (Math.PI * 2);
+      const targetAngle = extraSpins + pointerAngle - targetSliceCenter;
+
+      const duration = 3400;
+      const startTime = performance.now();
+      let lastTickSlice = -1;
+
+      if (spinAnimFrameId) cancelAnimationFrame(spinAnimFrameId);
+
+      function animateWheel(now) {
+        const elapsed = now - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        currentWheelAngle = startAngle + (targetAngle - startAngle) * eased;
+
+        const currentSlice = Math.floor(((currentWheelAngle % (Math.PI * 2)) / sliceAngle));
+        if (currentSlice !== lastTickSlice && progress < 0.97) {
+          lastTickSlice = currentSlice;
+          playTickSound();
+        }
+
+        renderBothWheels();
+
+        if (progress < 1) {
+          spinAnimFrameId = requestAnimationFrame(animateWheel);
+        } else {
+          isSpinning = false;
+          const userObj = state.users.find(u => u.id === winner.id);
+          if (userObj) {
+            userObj.hasWon = true;
+            userObj.wonMonth = month;
+            userObj.wonAmount = pot;
+          }
+          state.winnersHistory.push({
+            month: month,
+            userId: winner.id,
+            userName: winner.name,
+            amount: pot
+          });
+          saveState();
+          playWinnerFanfare();
+          renderAll();
+          showToast(`${winner.name} won BDT ${pot.toLocaleString()} for ${month}.`, 'WINNER');
+        }
+      }
+
+      spinAnimFrameId = requestAnimationFrame(animateWheel);
+    }
+
+    // =========================================================================
+    // 6. RENDER ALL PAGES
+    // =========================================================================
+    const PAGE_TITLES = {
+      dashboard: 'Home Overview',
+      pay: 'Pay Monthly Deposit',
+      wheel: 'Monthly Wheel Draw',
+      winners: 'Winners & Members',
+      admin: 'Admin Control',
+      auth: 'Account Access'
+    };
+
+    function renderAll() {
+      const month = getCurrentMonth();
+      const user = getCurrentUser();
+      const verifiedPot = getMonthVerifiedPot(month);
+      const pendingPayments = state.payments.filter(p => p.status === 'pending');
+      const eligibleUsers = getEligibleWheelUsers();
+      const monthWinner = state.winnersHistory.find(w => w.month === month);
+
+      // Header updates
+      document.getElementById('currentMonthBadge').textContent = month;
+      document.getElementById('pageHeaderSubtitle').textContent = PAGE_TITLES[state.activeView] || 'Home Overview';
+      document.getElementById('formMonthLabel').textContent = month;
+      document.getElementById('adminMonthLabel').textContent = month;
+      document.getElementById('wheelMonthLabel').textContent = month;
+      document.getElementById('pendingCountBadge').textContent = pendingPayments.length;
+
+      const pendingDot = document.getElementById('bottomNavPendingDot');
+      if (pendingPayments.length > 0) {
+        pendingDot.classList.remove('hidden');
+      } else {
+        pendingDot.classList.add('hidden');
+      }
+
+      document.getElementById('activeUserName').textContent = user.name.split(' ')[0];
+      document.getElementById('activeUserRole').textContent = user.role === 'admin' ? 'Admin' : 'Member';
+      document.getElementById('activeUserAvatar').textContent = user.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+      document.getElementById('soundLabel').textContent = state.soundEnabled ? 'Sound: On' : 'Sound: Off';
+
+      // Page visibility
+      const pages = {
+        dashboard: document.getElementById('viewDashboard'),
+        pay: document.getElementById('viewPay'),
+        wheel: document.getElementById('viewWheel'),
+        winners: document.getElementById('viewWinners'),
+        admin: document.getElementById('viewAdmin'),
+        auth: document.getElementById('viewAuth')
+      };
+      Object.keys(pages).forEach(k => {
+        if (k === state.activeView) {
+          pages[k].classList.remove('hidden');
+        } else {
+          pages[k].classList.add('hidden');
+        }
+      });
+
+      // Bottom Nav Active Highlight
+      document.querySelectorAll('.mobile-nav-btn').forEach(btn => {
+        const target = btn.getAttribute('data-nav-page');
+        if (target === state.activeView) {
+          btn.className = 'mobile-nav-btn relative flex flex-col items-center justify-center py-1 text-indigo-600';
+        } else {
+          btn.className = 'mobile-nav-btn relative flex flex-col items-center justify-center py-1 text-slate-400 hover:text-slate-700';
+        }
+      });
+
+      // Member Data Display
+      const displayUser = user.role === 'admin' ? state.users.find(u => u.role === 'member') : user;
+      const myTotal = getUserTotalVerifiedDeposit(displayUser.id);
+      const myVerifiedCount = state.payments.filter(p => p.userId === displayUser.id && p.status === 'verified').length;
+
+      document.getElementById('kpiMyTotalDeposit').textContent = `BDT ${myTotal.toLocaleString()}`;
+      document.getElementById('kpiMyMonthsCount').textContent = `${myVerifiedCount} verified payment${myVerifiedCount === 1 ? '' : 's'} (${displayUser.name})`;
+
+      const thisMonthPayment = state.payments.find(p => p.userId === displayUser.id && p.month === month);
+      const statusBadge = document.getElementById('kpiMyMonthStatusBadge');
+      if (!thisMonthPayment) {
+        statusBadge.textContent = 'Unpaid';
+        statusBadge.className = 'inline-block px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-500/30 text-rose-100';
+      } else if (thisMonthPayment.status === 'verified') {
+        statusBadge.textContent = 'Verified';
+        statusBadge.className = 'inline-block px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-400/25 text-emerald-100';
+      } else if (thisMonthPayment.status === 'pending') {
+        statusBadge.textContent = 'Pending';
+        statusBadge.className = 'inline-block px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-400/30 text-amber-100';
+      } else {
+        statusBadge.textContent = 'Rejected';
+        statusBadge.className = 'inline-block px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-500/30 text-rose-100';
+      }
+
+      document.getElementById('kpiFixedAmountText').textContent = `BDT ${state.fixedDepositAmount.toLocaleString()} / mo`;
+      document.getElementById('fixedDepositPill').textContent = `BDT ${state.fixedDepositAmount.toLocaleString()}`;
+      document.getElementById('depositAmountInput').textContent = state.fixedDepositAmount.toLocaleString();
+      document.getElementById('adminFixedDepositInput').value = state.fixedDepositAmount;
+
+      const verifiedCountThisMonth = state.payments.filter(p => p.month === month && p.status === 'verified').length;
+      document.getElementById('kpiCurrentPot').textContent = `BDT ${verifiedPot.toLocaleString()}`;
+      document.getElementById('kpiCurrentPotSub').textContent = `${verifiedCountThisMonth} verified deposits`;
+      document.getElementById('adminPotBadge').textContent = `Pot: BDT ${verifiedPot.toLocaleString()}`;
+
+      if (displayUser.hasWon) {
+        document.getElementById('kpiMyEligibility').textContent = `Won (${displayUser.wonMonth})`;
+      } else {
+        document.getElementById('kpiMyEligibility').textContent = 'In Wheel Draw';
+      }
+
+      // My Payment History Cards (Page 1)
+      const myPayments = state.payments.filter(p => p.userId === displayUser.id).slice().reverse();
+      const myCardList = document.getElementById('myDepositsCardList');
+      if (myPayments.length === 0) {
+        myCardList.innerHTML = `<div class="p-6 text-center text-xs text-slate-400">No payments yet. Tap Pay below to submit.</div>`;
+      } else {
+        myCardList.innerHTML = myPayments.map(p => {
+          const badge = p.status === 'verified'
+            ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">Verified</span>'
+            : p.status === 'pending'
+            ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">Pending</span>'
+            : '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800">Rejected</span>';
+          return `<div class="p-3.5 flex items-center justify-between gap-2">
+            <div>
+              <div class="text-xs font-bold text-slate-900">${p.month}</div>
+              <div class="text-[11px] text-slate-500">${p.method} • <span class="font-mono">${p.trxId}</span></div>
+            </div>
+            <div class="flex items-center gap-2">
+              <button type="button" data-view-receipt="${p.id}" class="px-2 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-semibold">
+                Receipt
+              </button>
+              <div class="text-right">
+                <div class="text-xs font-bold text-slate-900">BDT ${Number(p.amount).toLocaleString()}</div>
+                <div>${badge}</div>
+              </div>
+            </div>
+          </div>`;
+        }).join('');
+      }
+
+      // Pay Page Method Buttons (Page 2)
+      document.querySelectorAll('.method-btn').forEach(btn => {
+        const m = btn.getAttribute('data-method');
+        if (m === state.selectedMethod) {
+          btn.className = 'method-btn p-3 rounded-xl border-2 border-indigo-600 bg-indigo-50/60 text-left transition';
+        } else {
+          btn.className = 'method-btn p-3 rounded-xl border-2 border-slate-200 bg-white text-left transition';
+        }
+      });
+
+      const instructions = {
+        'bKash': ['Send to Admin bKash:', '01700-998877'],
+        'Nagad': ['Send to Admin Nagad:', '01800-998877'],
+        'Bank Transfer': ['City Bank Account:', 'A/C 145-220-998877'],
+        'Cash on Hand': ['Cash Handover:', 'Pay directly to Admin']
+      };
+      const [instTitle, instDetail] = instructions[state.selectedMethod] || instructions['bKash'];
+      document.getElementById('paymentInstructionTitle').textContent = instTitle;
+      document.getElementById('paymentInstructionDetail').textContent = instDetail;
+
+      if (state.selectedMethod === 'Cash on Hand') {
+        document.getElementById('digitalFieldsContainer').classList.add('hidden');
+        document.getElementById('cashFieldsContainer').classList.remove('hidden');
+      } else {
+        document.getElementById('digitalFieldsContainer').classList.remove('hidden');
+        document.getElementById('cashFieldsContainer').classList.add('hidden');
+      }
+
+      // Wheel Page & Admin Wheel (Page 3 & Page 5)
+      document.getElementById('wheelEligibleCountBadge').textContent = `${eligibleUsers.length} Eligible`;
+      const dashBanner = document.getElementById('dashboardWinnerBanner');
+      const adminResultBox = document.getElementById('adminWinnerResultBox');
+      const spinBtn = document.getElementById('spinWheelBtn');
+
+      if (monthWinner) {
+        dashBanner.classList.remove('hidden');
+        document.getElementById('bannerMonthName').textContent = month;
+        document.getElementById('bannerWinnerName').textContent = monthWinner.userName;
+        document.getElementById('bannerWinnerPot').textContent = `Won BDT ${Number(monthWinner.amount).toLocaleString()}`;
+
+        adminResultBox.classList.remove('hidden');
+        document.getElementById('adminWinnerResultName').textContent = monthWinner.userName;
+        document.getElementById('adminWinnerResultDetails').textContent = `Won BDT ${Number(monthWinner.amount).toLocaleString()} (${month})`;
+        spinBtn.disabled = true;
+        spinBtn.textContent = `Winner Picked (${monthWinner.userName})`;
+      } else {
+        dashBanner.classList.add('hidden');
+        adminResultBox.classList.add('hidden');
+        spinBtn.disabled = isSpinning || eligibleUsers.length === 0;
+        spinBtn.textContent = isSpinning ? 'Spinning...' : 'Spin Wheel Now';
+      }
+
+      // Winners & Member Roster (Page 4)
+      const rosterEl = document.getElementById('memberRosterList');
+      rosterEl.innerHTML = getMemberUsers().map(m => {
+        const totalDep = getUserTotalVerifiedDeposit(m.id);
+        const badgeHtml = m.hasWon
+          ? `<span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800">Won ${m.wonMonth}</span>`
+          : `<span class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700">On Wheel</span>`;
+        return `<div class="p-3.5 flex items-center justify-between gap-2">
+          <div>
+            <div class="text-xs font-bold text-slate-900">${m.name}</div>
+            <div class="text-[11px] text-slate-500">Saved: BDT ${totalDep.toLocaleString()}</div>
+          </div>
+          <div>${badgeHtml}</div>
+        </div>`;
+      }).join('');
+
+      // Admin Sub-Tabs (Page 5)
+      const verifySec = document.getElementById('adminVerifySection');
+      const spinSec = document.getElementById('adminSpinSection');
+      const subVerifyBtn = document.getElementById('adminSubTabVerifyBtn');
+      const subSpinBtn = document.getElementById('adminSubTabSpinBtn');
+
+      if (state.adminSubTab === 'spin') {
+        verifySec.classList.add('hidden');
+        spinSec.classList.remove('hidden');
+        subSpinBtn.className = 'py-2 rounded-lg bg-white text-slate-900 shadow-xs';
+        subVerifyBtn.className = 'py-2 rounded-lg text-slate-600 hover:text-slate-900';
+      } else {
+        verifySec.classList.remove('hidden');
+        spinSec.classList.add('hidden');
+        subVerifyBtn.className = 'py-2 rounded-lg bg-white text-slate-900 shadow-xs';
+        subSpinBtn.className = 'py-2 rounded-lg text-slate-600 hover:text-slate-900';
+      }
+
+      document.querySelectorAll('.admin-filter-btn').forEach(btn => {
+        const f = btn.getAttribute('data-filter');
+        if (f === state.adminFilter) {
+          btn.className = 'admin-filter-btn px-2 py-1 rounded bg-white text-slate-900 shadow-2xs';
+        } else {
+          btn.className = 'admin-filter-btn px-2 py-1 rounded text-slate-600';
+        }
+      });
+
+      const filteredPayments = state.payments
+        .filter(p => state.adminFilter === 'all' ? true : p.status === state.adminFilter)
+        .slice()
+        .reverse();
+
+      const adminCardList = document.getElementById('adminPaymentsCardList');
+      if (filteredPayments.length === 0) {
+        adminCardList.innerHTML = `<div class="p-6 text-center text-xs text-slate-400">No matching payments.</div>`;
+      } else {
+        adminCardList.innerHTML = filteredPayments.map(p => {
+          const member = state.users.find(u => u.id === p.userId);
+          const memberName = member ? member.name : 'Member';
+          const statusPill = p.status === 'verified'
+            ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">Verified</span>'
+            : p.status === 'pending'
+            ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">Pending</span>'
+            : '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800">Rejected</span>';
+
+          const actions = p.status === 'pending'
+            ? `<div class="flex items-center gap-1.5 mt-2.5 pt-2.5 border-t border-slate-100">
+                <button type="button" data-view-receipt="${p.id}" class="flex-1 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold">Receipt</button>
+                <button type="button" data-approve-id="${p.id}" class="flex-1 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold">Verify</button>
+                <button type="button" data-reject-id="${p.id}" class="flex-1 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-semibold">Reject</button>
+               </div>`
+            : `<div class="flex items-center justify-between mt-2 pt-2 border-t border-slate-50">
+                <button type="button" data-view-receipt="${p.id}" class="text-[11px] font-semibold text-indigo-600 hover:underline">View Receipt</button>
+                <span class="text-[11px] text-slate-400">Reviewed</span>
+               </div>`;
+
+          return `<div class="p-3.5">
+            <div class="flex items-center justify-between">
+              <div>
+                <div class="text-xs font-bold text-slate-900">${memberName}</div>
+                <div class="text-[11px] text-slate-500">${p.month} • ${p.method} (${p.trxId})</div>
+              </div>
+              <div class="text-right">
+                <div class="text-xs font-bold text-slate-900">BDT ${Number(p.amount).toLocaleString()}</div>
+                <div>${statusPill}</div>
+              </div>
+            </div>
+            ${actions}
+          </div>`;
+        }).join('');
+      }
+
+      const eligContainer = document.getElementById('adminEligibilitySummary');
+      eligContainer.innerHTML = getMemberUsers().map(m => {
+        if (m.hasWon) {
+          return `<div class="flex items-center justify-between p-2 rounded-lg bg-slate-50 text-slate-400">
+            <span class="line-through">${m.name}</span>
+            <span class="text-[10px] font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded">Won ${m.wonMonth}</span>
+          </div>`;
+        }
+        return `<div class="flex items-center justify-between p-2 rounded-lg bg-emerald-50/60 text-slate-800">
+          <span class="font-semibold">${m.name}</span>
+          <span class="text-[10px] font-semibold text-emerald-700">Eligible</span>
+        </div>`;
+      }).join('');
+
+      renderBothWheels();
+    }
+
+    // =========================================================================
+    // 7. EVENTS
+    // =========================================================================
+    document.addEventListener('DOMContentLoaded', () => {
+      // Bottom Navigation Bar
+      document.querySelectorAll('.mobile-nav-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.activeView = btn.getAttribute('data-nav-page');
+          saveState();
+          renderAll();
+        });
+      });
+
+      // Home Quick Action Buttons
+      document.getElementById('homeGoPayBtn').addEventListener('click', () => {
+        state.activeView = 'pay';
+        saveState();
+        renderAll();
+      });
+
+      document.getElementById('homeGoWheelBtn').addEventListener('click', () => {
+        state.activeView = 'wheel';
+        saveState();
+        renderAll();
+      });
+
+      document.getElementById('headerAccountBtn').addEventListener('click', () => {
+        state.activeView = 'auth';
+        saveState();
+        renderAll();
+      });
+
+      // Top Demo Switcher
+      document.getElementById('quickSwitchUser1').addEventListener('click', () => {
+        state.currentUserId = 'u1';
+        state.activeView = 'dashboard';
+        saveState();
+        renderAll();
+        showToast('Viewing as Rahim Ahmed');
+      });
+
+      document.getElementById('quickSwitchUser2').addEventListener('click', () => {
+        state.currentUserId = 'u2';
+        state.activeView = 'pay';
+        saveState();
+        renderAll();
+        showToast('Viewing as Nusrat (Unpaid)');
+      });
+
+      document.getElementById('quickSwitchAdmin').addEventListener('click', () => {
+        state.currentUserId = 'admin1';
+        state.activeView = 'admin';
+        saveState();
+        renderAll();
+        showToast('Switched to Admin View');
+      });
+
+      document.getElementById('quickSwitchAuth').addEventListener('click', () => {
+        state.activeView = 'auth';
+        saveState();
+        renderAll();
+      });
+
+      document.getElementById('soundToggleBtn').addEventListener('click', () => {
+        state.soundEnabled = !state.soundEnabled;
+        saveState();
+        renderAll();
+      });
+
+      // Legacy Tab Handlers
+      document.getElementById('tabDashboardBtn').addEventListener('click', () => {
+        state.activeView = 'dashboard';
+        saveState();
+        renderAll();
+      });
+      document.getElementById('tabAdminBtn').addEventListener('click', () => {
+        state.activeView = 'admin';
+        saveState();
+        renderAll();
+      });
+      document.getElementById('tabAuthBtn').addEventListener('click', () => {
+        state.activeView = 'auth';
+        saveState();
+        renderAll();
+      });
+
+      // Admin Sub-Tabs
+      document.getElementById('adminSubTabVerifyBtn').addEventListener('click', () => {
+        state.adminSubTab = 'verify';
+        saveState();
+        renderAll();
+      });
+      document.getElementById('adminSubTabSpinBtn').addEventListener('click', () => {
+        state.adminSubTab = 'spin';
+        saveState();
+        renderAll();
+      });
+
+      document.getElementById('goToAdminWheelBtn').addEventListener('click', () => {
+        state.currentUserId = 'admin1';
+        state.activeView = 'admin';
+        state.adminSubTab = 'spin';
+        saveState();
+        renderAll();
+      });
+
+      // Auth Toggle
+      const loginForm = document.getElementById('loginForm');
+      const signupForm = document.getElementById('signupForm');
+      const authModeLoginBtn = document.getElementById('authModeLoginBtn');
+      const authModeSignupBtn = document.getElementById('authModeSignupBtn');
+
+      authModeLoginBtn.addEventListener('click', () => {
+        loginForm.classList.remove('hidden');
+        signupForm.classList.add('hidden');
+        authModeLoginBtn.className = 'py-3 text-center border-b-2 border-indigo-600 text-indigo-600 bg-white';
+        authModeSignupBtn.className = 'py-3 text-center border-b-2 border-transparent text-slate-500';
+      });
+
+      authModeSignupBtn.addEventListener('click', () => {
+        signupForm.classList.remove('hidden');
+        loginForm.classList.add('hidden');
+        authModeSignupBtn.className = 'py-3 text-center border-b-2 border-indigo-600 text-indigo-600 bg-white';
+        authModeLoginBtn.className = 'py-3 text-center border-b-2 border-transparent text-slate-500';
+      });
+
+      document.getElementById('fillMemberDemoBtn').addEventListener('click', () => {
+        document.getElementById('loginPhone').value = '01711-000001';
+        document.getElementById('loginPassword').value = '123456';
+      });
+
+      document.getElementById('fillAdminDemoBtn').addEventListener('click', () => {
+        document.getElementById('loginPhone').value = 'admin@samity.com';
+        document.getElementById('loginPassword').value = 'admin';
+      });
+
+      loginForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const phone = document.getElementById('loginPhone').value.trim();
+        const found = state.users.find(u => u.phone.toLowerCase() === phone.toLowerCase()) || state.users[1];
+        state.currentUserId = found.id;
+        state.activeView = found.role === 'admin' ? 'admin' : 'dashboard';
+        saveState();
+        renderAll();
+        showToast(`Logged in as ${found.name}`);
+      });
+
+      signupForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const name = document.getElementById('signupName').value.trim();
+        const phone = document.getElementById('signupPhone').value.trim();
+        const password = document.getElementById('signupPassword').value.trim();
+        const role = document.getElementById('signupRole').value;
+        if (!name || !phone) return;
+
+        const newUser = {
+          id: 'u_' + Date.now(),
+          name,
+          phone,
+          password: password || '123456',
+          role,
+          hasWon: false,
+          wonMonth: null,
+          wonAmount: 0
+        };
+        state.users.push(newUser);
+        state.currentUserId = newUser.id;
+        state.activeView = role === 'admin' ? 'admin' : 'dashboard';
+        saveState();
+        signupForm.reset();
+        renderAll();
+        showToast(`Account created for ${name}`);
+      });
+
+      // Payment Methods
+      document.querySelectorAll('.method-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.selectedMethod = btn.getAttribute('data-method');
+          saveState();
+          renderAll();
+        });
+      });
+
+      document.getElementById('generateSampleTrxBtn').addEventListener('click', () => {
+        const prefix = state.selectedMethod === 'bKash' ? 'BKA' : state.selectedMethod === 'Nagad' ? 'NGD' : 'BNK';
+        document.getElementById('trxIdInput').value = `${prefix}${Math.floor(100000 + Math.random() * 900000)}`;
+      });
+
+      const fileInput = document.getElementById('screenshotFileInput');
+      fileInput.addEventListener('change', (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          attachedScreenshotDataUri = ev.target.result;
+          document.getElementById('screenshotPreviewImg').src = attachedScreenshotDataUri;
+          document.getElementById('screenshotFileName').textContent = file.name;
+          document.getElementById('screenshotPreviewWrapper').classList.remove('hidden');
+        };
+        reader.readAsDataURL(file);
+      });
+
+      document.getElementById('useSampleScreenshotBtn').addEventListener('click', () => {
+        const user = getCurrentUser();
+        const displayUser = user.role === 'admin' ? state.users.find(u => u.role === 'member') : user;
+        let trx = document.getElementById('trxIdInput').value.trim();
+        if (!trx) {
+          const prefix = state.selectedMethod === 'bKash' ? 'BKA' : state.selectedMethod === 'Nagad' ? 'NGD' : 'BNK';
+          trx = `${prefix}${Math.floor(100000 + Math.random() * 900000)}`;
+          document.getElementById('trxIdInput').value = trx;
+        }
+        attachedScreenshotDataUri = createSampleReceiptDataUri(
+          state.selectedMethod,
+          trx,
+          state.fixedDepositAmount,
+          displayUser.name,
+          getCurrentMonth()
+        );
+        document.getElementById('screenshotPreviewImg').src = attachedScreenshotDataUri;
+        document.getElementById('screenshotFileName').textContent = `receipt_${trx}.svg`;
+        document.getElementById('screenshotPreviewWrapper').classList.remove('hidden');
+      });
+
+      document.getElementById('clearScreenshotBtn').addEventListener('click', () => {
+        attachedScreenshotDataUri = '';
+        fileInput.value = '';
+        document.getElementById('screenshotPreviewWrapper').classList.add('hidden');
+      });
+
+      document.getElementById('depositForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const user = getCurrentUser();
+        const memberUser = user.role === 'admin' ? state.users.find(u => u.role === 'member') : user;
+        const month = getCurrentMonth();
+        const method = state.selectedMethod;
+
+        let trxId = '';
+        let screenshot = '';
+
+        if (method === 'Cash on Hand') {
+          const note = document.getElementById('cashNoteInput').value.trim();
+          if (!note) {
+            showToast('Enter receiver name or note', 'ALERT');
+            return;
+          }
+          trxId = note;
+          screenshot = createSampleReceiptDataUri('Cash on Hand', 'CASH', state.fixedDepositAmount, memberUser.name, month);
+        } else {
+          trxId = document.getElementById('trxIdInput').value.trim();
+          if (!trxId) {
+            showToast('Enter Transaction ID', 'ALERT');
+            return;
+          }
+          if (!attachedScreenshotDataUri) {
+            attachedScreenshotDataUri = createSampleReceiptDataUri(method, trxId, state.fixedDepositAmount, memberUser.name, month);
+          }
+          screenshot = attachedScreenshotDataUri;
+        }
+
+        state.payments.push({
+          id: 'p_' + Date.now(),
+          userId: memberUser.id,
+          month,
+          amount: state.fixedDepositAmount,
+          method,
+          trxId,
+          screenshot,
+          status: 'pending'
+        });
+
+        attachedScreenshotDataUri = '';
+        document.getElementById('trxIdInput').value = '';
+        document.getElementById('cashNoteInput').value = '';
+        document.getElementById('screenshotPreviewWrapper').classList.add('hidden');
+        state.activeView = 'dashboard';
+        saveState();
+        renderAll();
+        showToast('Deposit submitted for verification');
+      });
+
+      document.getElementById('saveFixedDepositBtn').addEventListener('click', () => {
+        const val = Number(document.getElementById('adminFixedDepositInput').value);
+        if (val >= 500) {
+          state.fixedDepositAmount = val;
+          saveState();
+          renderAll();
+          showToast(`Fixed deposit set to BDT ${val.toLocaleString()}`);
+        }
+      });
+
+      document.getElementById('advanceNextMonthBtn').addEventListener('click', () => {
+        if (state.currentMonthIndex < AVAILABLE_MONTHS.length - 1) {
+          state.currentMonthIndex += 1;
+        } else {
+          AVAILABLE_MONTHS.push(`Month ${AVAILABLE_MONTHS.length + 1}`);
+          state.currentMonthIndex = AVAILABLE_MONTHS.length - 1;
+        }
+        saveState();
+        renderAll();
+        showToast(`Active month: ${getCurrentMonth()}`);
+      });
+
+      document.querySelectorAll('.admin-filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.adminFilter = btn.getAttribute('data-filter');
+          saveState();
+          renderAll();
+        });
+      });
+
+      document.getElementById('spinWheelBtn').addEventListener('click', () => {
+        spinLotteryWheel();
+      });
+
+      document.body.addEventListener('click', (e) => {
+        const viewBtn = e.target.closest('[data-view-receipt]');
+        if (viewBtn) {
+          const paymentId = viewBtn.getAttribute('data-view-receipt');
+          const payment = state.payments.find(p => p.id === paymentId);
+          if (payment) {
+            const member = state.users.find(u => u.id === payment.userId);
+            document.getElementById('modalTitle').textContent = `${member ? member.name : 'Member'} (${payment.month})`;
+            document.getElementById('modalSubtitle').textContent = `${payment.method} • ${payment.trxId}`;
+            document.getElementById('modalScreenshotImg').src = payment.screenshot;
+            const modal = document.getElementById('screenshotModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+          }
+        }
+
+        const approveBtn = e.target.closest('[data-approve-id]');
+        if (approveBtn) {
+          const paymentId = approveBtn.getAttribute('data-approve-id');
+          const payment = state.payments.find(p => p.id === paymentId);
+          if (payment) {
+            payment.status = 'verified';
+            saveState();
+            renderAll();
+            showToast(`Approved ${payment.method} payment`);
+          }
+        }
+
+        const rejectBtn = e.target.closest('[data-reject-id]');
+        if (rejectBtn) {
+          const paymentId = rejectBtn.getAttribute('data-reject-id');
+          const payment = state.payments.find(p => p.id === paymentId);
+          if (payment) {
+            payment.status = 'rejected';
+            saveState();
+            renderAll();
+            showToast(`Rejected ${payment.trxId}`, 'REJECT');
+          }
+        }
+      });
+
+      function closeScreenshotModal() {
+        const modal = document.getElementById('screenshotModal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      }
+      document.getElementById('closeModalBtn').addEventListener('click', closeScreenshotModal);
+      document.getElementById('closeModalFooterBtn').addEventListener('click', closeScreenshotModal);
+      document.getElementById('toastCloseBtn').addEventListener('click', () => {
+        document.getElementById('toastContainer').classList.add('hidden');
+      });
+
+      document.getElementById('resetDemoDataBtn').addEventListener('click', () => {
+        state = getDefaultState();
+        saveState();
+        renderAll();
+        showToast('Demo data reset');
+      });
+
+      renderAll();
+    });
+  </script>
+</body>
+</html>
