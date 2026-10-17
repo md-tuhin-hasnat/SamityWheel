@@ -3,6 +3,7 @@
 import React from 'react';
 import { useSamity } from '@/context/SamityContext';
 import { Trophy, CheckCircle2, Users, ShieldCheck, AlertCircle } from 'lucide-react';
+import { WinnerStoryTray } from './WinnerStoryTray';
 
 export function WinnersView() {
   const { currentSamity } = useSamity();
@@ -24,6 +25,9 @@ export function WinnersView() {
 
   return (
     <div className="space-y-4">
+      {/* Facebook Day Winner Stories Reel */}
+      <WinnerStoryTray />
+
       {/* Cycle Progress Card */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs p-4">
         <div className="flex items-center justify-between mb-2">

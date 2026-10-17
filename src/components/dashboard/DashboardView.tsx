@@ -4,6 +4,7 @@ import React from 'react';
 import { useSamity } from '@/context/SamityContext';
 import { ArrowUpRight, Disc, CheckCircle2, Clock, FileText, AlertCircle } from 'lucide-react';
 import { RotationCountdownCard } from './RotationCountdownCard';
+import { WinnerStoryTray } from '@/components/winners/WinnerStoryTray';
 
 export function DashboardView() {
   const {
@@ -94,6 +95,9 @@ export function DashboardView() {
 
       {/* Active Rotation & Countdown Card */}
       <RotationCountdownCard />
+
+      {/* Facebook Day Style Winner Stories Reel */}
+      <WinnerStoryTray />
 
       {/* Quick Actions */}
       <div className="grid grid-cols-2 gap-2">

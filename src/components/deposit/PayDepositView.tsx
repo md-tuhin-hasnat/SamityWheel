@@ -185,46 +185,41 @@ export function PayDepositView() {
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
-      <div className="px-4 py-3.5 border-b border-slate-100 flex items-center justify-between">
+      {/* Header */}
+      <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
         <div>
-          <h2 className="text-sm font-bold text-slate-900">Add Deposit Contribution</h2>
-          <p className="text-xs text-slate-500 font-medium">
-            {currentSamity.name} • Rotation {targetRotation}
+          <h2 className="text-sm font-bold text-slate-900">Pay Deposit</h2>
+          <p className="text-[11px] text-slate-500 font-medium">
+            {currentSamity.name}
           </p>
         </div>
-        <span className="px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 text-xs font-bold border border-indigo-100/60">
+        <span className="px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 text-xs font-bold border border-indigo-100">
           BDT {currentSamity.fixedDepositAmount.toLocaleString()}
         </span>
       </div>
 
-      <form onSubmit={handleSubmit} className="p-4 space-y-4">
-        {/* Step 0: Cycle Rotation Target */}
-        <div className="p-3 rounded-xl bg-indigo-50/70 border border-indigo-100 flex items-center justify-between">
-          <div>
-            <div className="text-xs font-bold text-indigo-950">Target Rotation Period:</div>
-            <div className="text-[11px] text-indigo-600 font-medium">
-              Active cycle currently on Rotation {currentSamity.currentRotationIndex || 1}
-            </div>
-          </div>
+      <form onSubmit={handleSubmit} className="p-4 space-y-3.5">
+        {/* Rotation Selector */}
+        <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs">
+          <span className="font-semibold text-slate-700">Rotation</span>
           <select
             value={targetRotation}
             onChange={(e) => setTargetRotation(Number(e.target.value) || 1)}
-            className="px-2.5 py-1.5 rounded-lg border border-indigo-200 bg-white font-bold text-xs font-mono text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            aria-label="Target rotation period"
+            className="px-2 py-1 rounded-lg border border-slate-300 bg-white font-bold text-xs font-mono text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
           >
             {Array.from({ length: currentSamity.totalRotations || 6 }).map((_, idx) => (
               <option key={idx + 1} value={idx + 1}>
-                Rotation {idx + 1} {((idx + 1) === (currentSamity.currentRotationIndex || 1)) ? '⭐ (Active)' : ''}
+                R{idx + 1} {((idx + 1) === (currentSamity.currentRotationIndex || 1)) ? '(Active)' : ''}
               </option>
             ))}
           </select>
         </div>
 
-        {/* Step 1: Select Method */}
+        {/* Payment Methods */}
         <div>
-          <label className="block text-xs font-semibold text-slate-700 mb-2">
-            1. Select Payment Channel
-          </label>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wider">Method</div>
+          <div className="grid grid-cols-4 gap-1.5">
             {PAYMENT_METHODS.map((m) => {
               const isSelected = method === m.id;
               return (
@@ -235,70 +230,72 @@ export function PayDepositView() {
                     setMethod(m.id);
                     setScreenshotDataUri('');
                   }}
-                  className={`p-3 rounded-xl border-2 text-left transition-all active:scale-98 ${
+                  className={`py-2 px-1 rounded-xl border text-center transition active:scale-95 cursor-pointer ${
                     isSelected
-                      ? 'border-indigo-600 bg-indigo-50/50 shadow-2xs'
-                      : 'border-slate-200 bg-white hover:border-slate-300'
+                      ? 'border-indigo-600 bg-indigo-600 text-white font-bold shadow-2xs'
+                      : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 font-medium text-xs'
                   }`}
                 >
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-900">{m.label}</span>
-                    {isSelected && <Check className="w-3.5 h-3.5 text-indigo-600 stroke-[3]" />}
-                  </div>
-                  <div className="text-[11px] text-slate-500 font-medium mt-0.5">{m.sub}</div>
+                  <div className="text-[11px] leading-tight truncate">{m.label}</div>
                 </button>
               );
             })}
           </div>
         </div>
 
-        {/* Instructions Box */}
-        <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between text-xs">
-          <div>
-            <div className="text-slate-500 font-medium">{instructions.title}</div>
-            <div className="font-bold text-slate-900 mt-0.5 font-mono">{instructions.detail}</div>
-          </div>
-          <div className="text-right">
-            <div className="text-slate-500 font-medium">Fixed Amount</div>
-            <div className="font-extrabold text-indigo-600">
-              BDT {currentSamity.fixedDepositAmount.toLocaleString()}
+        {/* Dynamic Admin Account Details with Copy Button */}
+        <div className="p-3 rounded-xl bg-indigo-50/70 border border-indigo-100 flex items-center justify-between text-xs">
+          <div className="min-w-0 pr-2">
+            <div className="text-[10px] text-indigo-700 font-bold uppercase tracking-wider">{instructions.title}</div>
+            <div className="font-extrabold text-slate-900 mt-0.5 font-mono text-xs truncate">
+              {instructions.detail}
             </div>
           </div>
+          <button
+            type="button"
+            onClick={() => {
+              navigator.clipboard?.writeText(instructions.detail.replace(/\(.*\)/, '').trim());
+              showToast('Copied payment details!', 'COPIED');
+            }}
+            className="px-2.5 py-1.5 rounded-lg bg-white border border-indigo-200 text-indigo-700 text-[11px] font-bold hover:bg-indigo-50 transition active:scale-95 shrink-0 shadow-2xs"
+          >
+            Copy
+          </button>
         </div>
 
         {/* Digital Payment Fields */}
         {!isCash ? (
-          <div className="space-y-4">
+          <div className="space-y-3">
             <div>
-              <label htmlFor="trxIdInput" className="block text-xs font-semibold text-slate-700 mb-1">
-                2. Transaction ID (TrxID)
-              </label>
-              <div className="flex gap-2">
-                <input
-                  id="trxIdInput"
-                  type="text"
-                  value={trxId}
-                  onChange={(e) => setTrxId(e.target.value)}
-                  placeholder="e.g. BKA8011RAH"
-                  className="flex-1 px-3 py-2.5 rounded-xl border border-slate-300 text-sm uppercase font-mono tracking-wider focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                />
+              <div className="flex items-center justify-between mb-1">
+                <label htmlFor="trxIdInput" className="text-[11px] font-bold text-slate-600 uppercase tracking-wider">
+                  TrxID / Reference
+                </label>
                 <button
                   type="button"
                   onClick={handleGenerateSampleTrx}
-                  className="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition active:scale-95 flex items-center gap-1.5"
+                  className="text-[11px] font-bold text-indigo-600 hover:text-indigo-800 transition active:scale-95 flex items-center gap-1 cursor-pointer"
                 >
-                  <Wand2 className="w-3.5 h-3.5 text-slate-500" />
+                  <Wand2 className="w-3 h-3" />
                   <span>Auto-Fill</span>
                 </button>
               </div>
+              <input
+                id="trxIdInput"
+                type="text"
+                value={trxId}
+                onChange={(e) => setTrxId(e.target.value)}
+                placeholder="e.g. BKA8011RAH"
+                className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs uppercase font-mono tracking-wider focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+              />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                3. Transaction Screenshot / Proof
-              </label>
+              <div className="text-[11px] font-bold text-slate-600 mb-1 uppercase tracking-wider">
+                Proof Voucher
+              </div>
               <div className="grid grid-cols-2 gap-2">
-                <label className="cursor-pointer py-2.5 px-3 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 text-center transition flex items-center justify-center gap-1.5 active:scale-98">
+                <label className="cursor-pointer py-2 px-3 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 text-center transition flex items-center justify-center gap-1.5 active:scale-95">
                   <Upload className="w-3.5 h-3.5 text-slate-500" />
                   <span>Upload Image</span>
                   <input
@@ -311,7 +308,7 @@ export function PayDepositView() {
                 <button
                   type="button"
                   onClick={handleUseSampleReceipt}
-                  className="py-2.5 px-3 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold transition active:scale-98"
+                  className="py-2 px-3 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold transition active:scale-95 cursor-pointer"
                 >
                   Sample Voucher
                 </button>
@@ -319,20 +316,20 @@ export function PayDepositView() {
 
               {/* Preview Box */}
               {screenshotDataUri && (
-                <div className="mt-3 p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2.5">
+                <div className="mt-2.5 p-2 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={screenshotDataUri}
                       alt="Receipt Preview"
-                      className="w-11 h-11 object-cover rounded-lg border border-slate-300 shadow-2xs"
+                      className="w-9 h-9 object-cover rounded-lg border border-slate-300"
                     />
                     <div>
-                      <div className="text-xs font-semibold text-slate-800 truncate max-w-[160px]">
+                      <div className="text-xs font-semibold text-slate-800 truncate max-w-[170px]">
                         {screenshotFileName || 'voucher.svg'}
                       </div>
-                      <div className="text-[11px] text-emerald-600 font-bold flex items-center gap-1">
-                        <Check className="w-3 h-3 stroke-[3]" />
+                      <div className="text-[10px] text-emerald-600 font-bold flex items-center gap-1">
+                        <Check className="w-2.5 h-2.5 stroke-[3]" />
                         <span>Attached</span>
                       </div>
                     </div>
@@ -343,10 +340,10 @@ export function PayDepositView() {
                       setScreenshotDataUri('');
                       setScreenshotFileName('');
                     }}
-                    className="p-1.5 rounded-lg text-rose-600 hover:bg-rose-50 transition active:scale-95"
+                    className="p-1 rounded-lg text-rose-600 hover:bg-rose-50 transition active:scale-95"
                     title="Remove attachment"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>
               )}
@@ -355,15 +352,15 @@ export function PayDepositView() {
         ) : (
           <div>
             <div className="flex items-center justify-between mb-1">
-              <label htmlFor="cashNoteInput" className="block text-xs font-semibold text-slate-700">
-                2. Receiver Name / Handover Note
+              <label htmlFor="cashNoteInput" className="text-[11px] font-bold text-slate-600 uppercase tracking-wider">
+                Handover Note
               </label>
               <button
                 type="button"
                 onClick={() => setCashNote(`Handed cash directly to Admin (${adminName})`)}
                 className="text-[11px] font-bold text-indigo-600 hover:text-indigo-800 transition cursor-pointer"
               >
-                + Fill: Handed to {adminName.split(' ')[0]}
+                + Fill Admin
               </button>
             </div>
             <input
@@ -371,8 +368,8 @@ export function PayDepositView() {
               type="text"
               value={cashNote}
               onChange={(e) => setCashNote(e.target.value)}
-              placeholder={`e.g. Paid cash directly to Samity Admin (${adminName})`}
-              className="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium"
+              placeholder={`Handed to ${adminName}`}
+              className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium bg-white"
             />
           </div>
         )}
@@ -380,9 +377,9 @@ export function PayDepositView() {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm transition shadow-sm active:scale-98 disabled:opacity-50"
+          className="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs transition shadow-xs active:scale-98 disabled:opacity-50 cursor-pointer mt-2"
         >
-          {isSubmitting ? 'Submitting Deposit...' : 'Submit Deposit for Verification'}
+          {isSubmitting ? 'Submitting...' : `Confirm Deposit • BDT ${currentSamity.fixedDepositAmount.toLocaleString()}`}
         </button>
       </form>
     </div>

@@ -63,12 +63,16 @@ export function AdminView() {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   // Cycle & Schedule state
-  const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>(
-    currentSamity?.members.filter((m) => m.inActiveCycle !== false).map((m) => m.id) || []
-  );
-  const [totalRotations, setTotalRotations] = useState<number>(
-    currentSamity?.totalRotations || 6
-  );
+  const initialMembers = currentSamity?.members.filter((m) => m.inActiveCycle !== false).map((m) => m.id) || [];
+  const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>(initialMembers);
+  const [totalRotations, setTotalRotations] = useState<number>(() => {
+    const mCount = Math.max(1, initialMembers.length);
+    const existing = currentSamity?.totalRotations || mCount;
+    if (existing < mCount || existing % mCount !== 0) {
+      return mCount;
+    }
+    return existing;
+  });
   const [intervalType, setIntervalType] = useState<RotationIntervalType>(
     (currentSamity?.rotationIntervalType as RotationIntervalType) || 'WEEK'
   );
@@ -158,18 +162,26 @@ export function AdminView() {
   };
 
   const toggleMemberSelection = (memberId: string) => {
-    setSelectedMemberIds((prev) =>
-      prev.includes(memberId)
+    setSelectedMemberIds((prev) => {
+      const next = prev.includes(memberId)
         ? prev.filter((id) => id !== memberId)
-        : [...prev, memberId]
-    );
+        : [...prev, memberId];
+      if (next.length > 0 && (totalRotations < next.length || totalRotations % next.length !== 0)) {
+        setTotalRotations(next.length * Math.max(1, Math.round(totalRotations / next.length)));
+      }
+      return next;
+    });
   };
 
   const handleSelectAllMembers = () => {
     if (selectedMemberIds.length === currentSamity.members.length) {
       setSelectedMemberIds([]);
     } else {
-      setSelectedMemberIds(currentSamity.members.map((m) => m.id));
+      const allIds = currentSamity.members.map((m) => m.id);
+      setSelectedMemberIds(allIds);
+      if (allIds.length > 0 && (totalRotations < allIds.length || totalRotations % allIds.length !== 0)) {
+        setTotalRotations(allIds.length * Math.max(1, Math.round(totalRotations / allIds.length)));
+      }
     }
   };
 
@@ -521,24 +533,24 @@ export function AdminView() {
         return (
           <div className="bg-white rounded-2xl border border-slate-200 shadow-xs p-5 space-y-4">
             <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
-                <Calendar className="w-5 h-5" />
+              <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                <Calendar className="w-4 h-4" />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-slate-900">Savings Cycle &amp; Rotation Math</h3>
-                <p className="text-xs text-slate-500 font-medium">
-                  Configure cycle members, rotation multipliers, repetition frequency, and draw milestones.
+                <h3 className="text-sm font-bold text-slate-900">Cycle &amp; Draw Schedule</h3>
+                <p className="text-[11px] text-slate-500 font-medium">
+                  Set participating members, rotations, and draw frequency.
                 </p>
               </div>
             </div>
 
-            <form onSubmit={handleSaveCycle} className="space-y-4 text-xs">
+            <form onSubmit={handleSaveCycle} className="space-y-3.5 text-xs">
               {/* 1. Select Participating Members */}
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <label className="font-bold text-slate-800 flex items-center gap-1.5">
+                  <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
                     <Users className="w-3.5 h-3.5 text-indigo-600" />
-                    <span>Participating Members ({selectedMemberIds.length}/{currentSamity.members.length})</span>
+                    <span>Members ({selectedMemberIds.length}/{currentSamity.members.length})</span>
                   </label>
                   <button
                     type="button"
@@ -549,18 +561,18 @@ export function AdminView() {
                   </button>
                 </div>
 
-                <div className="divide-y divide-slate-100 rounded-2xl border border-slate-200 overflow-hidden bg-white max-h-48 overflow-y-auto">
+                <div className="divide-y divide-slate-100 rounded-xl border border-slate-200 overflow-hidden bg-white max-h-40 overflow-y-auto">
                   {currentSamity.members.map((m) => {
                     const isSelected = selectedMemberIds.includes(m.id);
                     return (
                       <div
                         key={m.id}
                         onClick={() => toggleMemberSelection(m.id)}
-                        className={`p-3 flex items-center justify-between cursor-pointer transition ${
+                        className={`p-2.5 flex items-center justify-between cursor-pointer transition ${
                           isSelected ? 'bg-indigo-50/40 hover:bg-indigo-50/70' : 'hover:bg-slate-50'
                         }`}
                       >
-                        <div className="flex items-center gap-2.5">
+                        <div className="flex items-center gap-2">
                           <div className="text-indigo-600">
                             {isSelected ? (
                               <CheckSquare className="w-4 h-4 fill-indigo-600 text-white" />
@@ -584,7 +596,7 @@ export function AdminView() {
                         <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
                           isSelected ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-500'
                         }`}>
-                          {isSelected ? 'In Cycle' : 'Excluded'}
+                          {isSelected ? 'In' : 'Out'}
                         </span>
                       </div>
                     );
@@ -593,67 +605,68 @@ export function AdminView() {
               </div>
 
               {/* 2. Rotations Math Configuration */}
-              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-2.5">
                 <div className="flex items-center justify-between">
-                  <label className="font-bold text-slate-800 flex items-center gap-1.5">
+                  <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
                     <Layers className="w-3.5 h-3.5 text-indigo-600" />
-                    <span>Total Rotations in Cycle</span>
+                    <span>Rotations</span>
                   </label>
                   <span className="text-[11px] font-mono text-indigo-700 font-bold">
-                    Must be multiple of {memberCount || 1}
+                    Multiple of {memberCount || 1}
                   </span>
                 </div>
 
                 {/* Quick Multiplier Chips */}
                 <div className="grid grid-cols-4 gap-1.5">
-                  {[1, 2, 3, 4].map((mult) => {
-                    const targetRots = (memberCount || 3) * mult;
-                    const isSelected = totalRotations === targetRots;
-                    return (
-                      <button
-                        key={mult}
-                        type="button"
-                        onClick={() => setTotalRotations(targetRots)}
-                        className={`p-2 rounded-xl text-center border font-bold text-[11px] transition cursor-pointer ${
-                          isSelected
-                            ? 'bg-indigo-600 text-white border-indigo-700 shadow-xs'
-                            : 'bg-white text-slate-700 border-slate-300 hover:border-indigo-300'
-                        }`}
-                      >
-                        <div>{mult}x Multiplier</div>
-                        <div className={`text-[9px] font-mono ${isSelected ? 'text-indigo-200' : 'text-slate-500'}`}>
-                          {targetRots} Rotations
-                        </div>
-                      </button>
-                    );
-                  })}
+                  {[1, 2, 3, 4]
+                    .filter((mult) => (memberCount || 3) * mult <= 100)
+                    .map((mult) => {
+                      const targetRots = (memberCount || 3) * mult;
+                      const isSelected = totalRotations === targetRots;
+                      return (
+                        <button
+                          key={mult}
+                          type="button"
+                          onClick={() => setTotalRotations(targetRots)}
+                          className={`py-1.5 px-1 rounded-lg text-center border font-bold text-[11px] transition cursor-pointer ${
+                            isSelected
+                              ? 'bg-indigo-600 text-white border-indigo-700 shadow-2xs'
+                              : 'bg-white text-slate-700 border-slate-300 hover:border-indigo-300'
+                          }`}
+                        >
+                          <div>{mult}x</div>
+                          <div className={`text-[9px] font-mono ${isSelected ? 'text-indigo-200' : 'text-slate-500'}`}>
+                            {targetRots} Rots
+                          </div>
+                        </button>
+                      );
+                    })}
                 </div>
 
-                <div className="flex items-center gap-3 pt-1">
-                  <div className="w-32">
-                    <label className="block text-[10px] font-bold text-slate-500 mb-1">Total Rotations</label>
+                <div className="flex items-center gap-2.5 pt-0.5">
+                  <div className="w-24">
                     <input
                       type="number"
                       min={memberCount || 1}
+                      max={100}
                       step={memberCount || 1}
                       value={totalRotations}
-                      onChange={(e) => setTotalRotations(Number(e.target.value) || (memberCount || 1))}
-                      className="w-full px-3 py-2 rounded-xl border border-slate-300 font-mono font-bold text-sm bg-white"
+                      onChange={(e) => {
+                        const val = Math.min(100, Math.max(1, Number(e.target.value) || 1));
+                        setTotalRotations(val);
+                      }}
+                      aria-label="Total rotations"
+                      className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 font-mono font-bold text-xs bg-white text-center"
                     />
                   </div>
-                  <div className="flex-1 text-[11px] text-slate-600">
-                    <div>
-                      Draw frequency: <strong>Draw every {rotationsPerDraw} rotations</strong>
-                    </div>
-                    <div className="text-slate-500 text-[10px]">
-                      Each member wins once. Total draws = {memberCount}.
-                    </div>
+                  <div className="flex-1 text-[11px] text-slate-700 font-medium">
+                    Draw every <strong>{rotationsPerDraw} rotations</strong> ({memberCount} draws total)
                   </div>
                 </div>
 
                 {/* Mathematical Validation Feedback */}
                 <div
-                  className={`p-2.5 rounded-xl text-[11px] font-medium border flex items-center gap-2 ${
+                  className={`p-2 rounded-lg text-[11px] font-medium border flex items-center gap-1.5 ${
                     mathValidation.valid
                       ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
                       : 'bg-rose-50 text-rose-800 border-rose-200'
@@ -661,16 +674,14 @@ export function AdminView() {
                 >
                   {mathValidation.valid ? (
                     <>
-                      <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+                      <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0 stroke-[3]" />
                       <span>
-                        Mathematical Harmony: With <strong>{memberCount} members</strong> and{' '}
-                        <strong>{totalRotations} rotations</strong>, a Lucky Wheel Draw occurs after every{' '}
-                        <strong>{rotationsPerDraw} rotations</strong>.
+                        Valid: <strong>{memberCount} members</strong> • <strong>{totalRotations} rotations</strong> • Draw every <strong>{rotationsPerDraw}R</strong>
                       </span>
                     </>
                   ) : (
                     <>
-                      <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                      <AlertCircle className="w-3.5 h-3.5 text-rose-600 shrink-0" />
                       <span>{mathValidation.error}</span>
                     </>
                   )}
@@ -678,19 +689,19 @@ export function AdminView() {
               </div>
 
               {/* 3. Rotation Repetition / Interval Type */}
-              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
-                <label className="font-bold text-slate-800 flex items-center gap-1.5">
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+                <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
                   <Clock className="w-3.5 h-3.5 text-indigo-600" />
-                  <span>Rotation Interval &amp; Repetition</span>
+                  <span>Interval</span>
                 </label>
 
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                <div className="grid grid-cols-5 gap-1 text-center">
                   {[
-                    { id: 'DAY', label: 'Daily', sub: '1 Day per rotation' },
-                    { id: 'WEEK', label: 'Weekly', sub: '7 Days per rotation' },
-                    { id: 'BIWEEKLY', label: 'Bi-Weekly', sub: '14 Days per rotation' },
-                    { id: 'MONTH', label: 'Monthly', sub: '30 Days per rotation' },
-                    { id: 'CUSTOM', label: 'Custom Repetition', sub: 'Custom number of days' },
+                    { id: 'DAY', label: 'Daily', sub: '1d' },
+                    { id: 'WEEK', label: 'Weekly', sub: '7d' },
+                    { id: 'BIWEEKLY', label: '2-Wks', sub: '14d' },
+                    { id: 'MONTH', label: 'Monthly', sub: '30d' },
+                    { id: 'CUSTOM', label: 'Custom', sub: `${customDays}d` },
                   ].map((item) => {
                     const isSelected = intervalType === item.id;
                     return (
@@ -698,14 +709,14 @@ export function AdminView() {
                         key={item.id}
                         type="button"
                         onClick={() => setIntervalType(item.id as RotationIntervalType)}
-                        className={`p-2.5 rounded-xl text-left border transition cursor-pointer ${
+                        className={`py-1.5 px-1 rounded-lg border transition cursor-pointer ${
                           isSelected
-                            ? 'bg-indigo-600 text-white border-indigo-700 shadow-xs'
-                            : 'bg-white text-slate-700 border-slate-200 hover:border-indigo-300'
+                            ? 'bg-indigo-600 text-white border-indigo-700 shadow-2xs font-bold'
+                            : 'bg-white text-slate-700 border-slate-200 hover:border-indigo-300 font-medium'
                         }`}
                       >
-                        <div className="font-bold text-xs">{item.label}</div>
-                        <div className={`text-[10px] ${isSelected ? 'text-indigo-200' : 'text-slate-500'}`}>
+                        <div className="text-[11px] leading-tight">{item.label}</div>
+                        <div className={`text-[9px] font-mono ${isSelected ? 'text-indigo-200' : 'text-slate-400'}`}>
                           {item.sub}
                         </div>
                       </button>
@@ -714,49 +725,44 @@ export function AdminView() {
                 </div>
 
                 {intervalType === 'CUSTOM' && (
-                  <div className="p-3 bg-white rounded-xl border border-indigo-200 space-y-1">
-                    <label className="block text-[11px] font-bold text-slate-700">
-                      Custom Interval in Days
-                    </label>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="number"
-                        min={1}
-                        max={365}
-                        value={customDays}
-                        onChange={(e) => setCustomDays(Number(e.target.value) || 3)}
-                        className="w-24 px-3 py-1.5 rounded-lg border border-slate-300 font-mono font-bold text-xs"
-                      />
-                      <span className="text-slate-600 text-[11px] font-medium">
-                        days between rotation deadlines
-                      </span>
-                    </div>
+                  <div className="p-2 bg-white rounded-lg border border-indigo-200 flex items-center gap-2">
+                    <span className="text-[11px] text-slate-700 font-semibold">Every:</span>
+                    <input
+                      type="number"
+                      min={1}
+                      max={365}
+                      value={customDays}
+                      onChange={(e) => setCustomDays(Number(e.target.value) || 3)}
+                      className="w-16 px-2 py-1 rounded border border-slate-300 font-mono font-bold text-xs text-center"
+                    />
+                    <span className="text-slate-600 text-[11px]">days</span>
                   </div>
                 )}
               </div>
 
               {/* 4. Cycle Start Date & Active Rotation */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
-                  <label className="block font-bold text-slate-800 text-[11px]">Cycle Start Date</label>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+                  <label className="text-[10px] font-bold text-slate-600 uppercase tracking-wider block">Start Date</label>
                   <input
                     type="date"
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
-                    className="w-full px-2.5 py-1.5 rounded-xl border border-slate-300 bg-white font-mono text-xs"
+                    className="w-full px-2 py-1 rounded-lg border border-slate-300 bg-white font-mono text-xs"
                   />
                 </div>
 
-                <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
-                  <label className="block font-bold text-slate-800 text-[11px]">Current Active Rotation</label>
+                <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+                  <label className="text-[10px] font-bold text-slate-600 uppercase tracking-wider block">Active Rotation</label>
                   <select
                     value={currentRotationIndex}
                     onChange={(e) => setCurrentRotationIndex(Number(e.target.value) || 1)}
-                    className="w-full px-2.5 py-1.5 rounded-xl border border-slate-300 bg-white font-mono text-xs font-bold"
+                    aria-label="Active rotation"
+                    className="w-full px-2 py-1 rounded-lg border border-slate-300 bg-white font-mono text-xs font-bold"
                   >
                     {Array.from({ length: totalRotations }).map((_, idx) => (
                       <option key={idx + 1} value={idx + 1}>
-                        Rotation {idx + 1} {((idx + 1) % rotationsPerDraw === 0) ? '🎁 (Draw)' : ''}
+                        R{idx + 1} {((idx + 1) % rotationsPerDraw === 0) ? '🎁 Draw' : ''}
                       </option>
                     ))}
                   </select>
@@ -764,28 +770,27 @@ export function AdminView() {
               </div>
 
               {/* 5. Schedule & Milestone Timeline Preview */}
-              <div className="p-4 rounded-2xl bg-indigo-50/70 border border-indigo-100 space-y-2">
+              <div className="p-3 rounded-xl bg-indigo-50/70 border border-indigo-100 space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-black text-indigo-900 uppercase tracking-wider block">
-                    Calculated Rotation Timeline &amp; Draw Dates
+                  <span className="text-[10px] font-black text-indigo-900 uppercase tracking-wider block">
+                    Timeline Preview
                   </span>
-                  <span className="text-[10px] text-indigo-600 font-bold">
-                    {previewSchedule.length} Rotations • {memberCount} Draws
+                  <span className="text-[10px] text-indigo-700 font-bold font-mono">
+                    {previewSchedule.length} Rots • {memberCount} Draws
                   </span>
                 </div>
 
-                <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1">
+                <div className="space-y-1 max-h-40 overflow-y-auto pr-0.5">
                   {previewSchedule.map((rot) => {
                     const rotEndDate = new Date(rot.endDate).toLocaleDateString('en-US', {
                       month: 'short',
                       day: 'numeric',
-                      year: 'numeric',
                     });
 
                     return (
                       <div
                         key={rot.rotationIndex}
-                        className={`p-2.5 rounded-xl flex items-center justify-between text-[11px] ${
+                        className={`p-2 rounded-lg flex items-center justify-between text-[11px] ${
                           rot.isDrawRotation
                             ? 'bg-amber-100/70 border border-amber-300 text-amber-950 font-bold'
                             : 'bg-white border border-slate-200/80 text-slate-700'
@@ -793,26 +798,23 @@ export function AdminView() {
                       >
                         <div className="flex items-center gap-2">
                           <span
-                            className={`w-6 h-6 rounded-md flex items-center justify-center font-bold text-[10px] ${
+                            className={`w-5 h-5 rounded flex items-center justify-center font-bold text-[9px] ${
                               rot.isDrawRotation ? 'bg-amber-500 text-white' : 'bg-slate-100 text-slate-600'
                             }`}
                           >
                             R{rot.rotationIndex}
                           </span>
-                          <div>
-                            <span className="font-bold">{rot.label}</span>
-                            <span className="text-[10px] text-slate-500 ml-1.5">Ends {rotEndDate}</span>
-                          </div>
+                          <span className="font-semibold">{rotEndDate}</span>
                         </div>
 
                         <div>
                           {rot.isDrawRotation ? (
-                            <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500 text-white shadow-2xs">
-                              <Sparkles className="w-3 h-3" />
-                              <span>Lucky Draw #{rot.drawRoundNumber}</span>
+                            <span className="inline-flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-amber-500 text-white">
+                              <Sparkles className="w-2.5 h-2.5" />
+                              <span>Draw #{rot.drawRoundNumber}</span>
                             </span>
                           ) : (
-                            <span className="text-[10px] text-slate-400 font-medium">Regular Deposit</span>
+                            <span className="text-[10px] text-slate-400">Deposit</span>
                           )}
                         </div>
                       </div>
@@ -825,9 +827,9 @@ export function AdminView() {
               <button
                 type="submit"
                 disabled={isSavingCycle || !mathValidation.valid}
-                className="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs transition active:scale-98 shadow-sm disabled:opacity-50 cursor-pointer"
+                className="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs transition active:scale-98 shadow-xs disabled:opacity-50 cursor-pointer"
               >
-                {isSavingCycle ? 'Saving Cycle Configuration...' : 'Save Cycle Configuration & Rotation Math'}
+                {isSavingCycle ? 'Saving...' : 'Save Cycle Schedule'}
               </button>
             </form>
           </div>

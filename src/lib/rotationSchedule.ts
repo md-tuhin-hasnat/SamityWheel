@@ -31,6 +31,15 @@ export function validateCycleMath(memberCount: number, totalRotations: number): 
     return { valid: false, rotationsPerDraw: 0, multiplier: 0, error: 'At least 1 member must be selected.' };
   }
 
+  if (totalRotations > 100) {
+    return {
+      valid: false,
+      rotationsPerDraw: 0,
+      multiplier: 0,
+      error: `Total rotations (${totalRotations}) exceeds maximum limit of 100.`,
+    };
+  }
+
   if (totalRotations < memberCount) {
     return {
       valid: false,

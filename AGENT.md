@@ -53,6 +53,12 @@ Every agent working on this repository **MUST** consult and apply the installed 
 │ vercel-composition-patterns           │ Designing UI components, avoiding boolean prop proliferation,   │
 │                                       │ building compound components (Wheel, Modal, PaymentForm).       │
 ├───────────────────────────────────────┼─────────────────────────────────────────────────────────────────┤
+│ frontend-design                       │ Streamlining UI copywriting, eliminating text clutter,          │
+│                                       │ distinctive styling, and purposeful, minimal interface copy.    │
+├───────────────────────────────────────┼─────────────────────────────────────────────────────────────────┤
+│ ui-ux-pro-max                         │ Touch targets (≥44px), mobile-first ergonomics, compact chips,  │
+│                                       │ one-tap actions, high-contrast badges, scannability.            │
+├───────────────────────────────────────┼─────────────────────────────────────────────────────────────────┤
 │ 60fps-animation                       │ Canvas wheel rotation, drawer transitions, GPU-only transforms  │
 │                                       │ (translate/scale instead of width/height/top/left).             │
 ├───────────────────────────────────────┼─────────────────────────────────────────────────────────────────┤

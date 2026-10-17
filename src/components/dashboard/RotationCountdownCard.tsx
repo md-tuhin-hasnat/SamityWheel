@@ -150,30 +150,100 @@ export function RotationCountdownCard() {
         )}
       </div>
 
-      {/* Compact Timeline Dots */}
-      <div className="flex items-center gap-1 pt-1">
-        {Array.from({ length: totalRotations }).map((_, idx) => {
-          const rotNum = idx + 1;
-          const isCompleted = rotNum < currentRotationIndex;
-          const isActive = rotNum === currentRotationIndex;
-          const isDraw = rotNum % rotationsPerDraw === 0;
+      {/* Intuitive Rotation Progress Bar & Legend (Supports up to 100 Rotations) */}
+      <div className="space-y-1.5 pt-1">
+        {totalRotations <= 20 ? (
+          /* Segmented pills for <= 20 rotations */
+          <div className="flex items-center gap-1">
+            {Array.from({ length: totalRotations }).map((_, idx) => {
+              const rotNum = idx + 1;
+              const isCompleted = rotNum < currentRotationIndex;
+              const isActive = rotNum === currentRotationIndex;
+              const isDraw = rotNum % rotationsPerDraw === 0;
 
-          return (
-            <div
-              key={rotNum}
-              title={`Rotation ${rotNum}${isDraw ? ' (Draw)' : ''}`}
-              className={`flex-1 h-2 rounded-full transition-all ${
-                isActive
-                  ? 'bg-indigo-600 ring-2 ring-indigo-200 scale-105'
-                  : isCompleted
-                  ? 'bg-emerald-500'
-                  : isDraw
-                  ? 'bg-amber-300'
-                  : 'bg-slate-200'
-              }`}
-            />
-          );
-        })}
+              return (
+                <div
+                  key={rotNum}
+                  title={`Rotation ${rotNum}${isDraw ? ' (Draw Milestone)' : ''}`}
+                  className={`flex-1 h-2 rounded-full transition-all relative flex items-center justify-center ${
+                    isActive
+                      ? isDraw
+                        ? 'bg-gradient-to-r from-indigo-600 to-amber-500 ring-2 ring-amber-300 scale-105'
+                        : 'bg-indigo-600 ring-2 ring-indigo-200 scale-105'
+                      : isCompleted
+                      ? 'bg-emerald-500'
+                      : isDraw
+                      ? 'bg-slate-100 border border-amber-400'
+                      : 'bg-slate-200'
+                  }`}
+                >
+                  {isDraw && !isCompleted && !isActive && (
+                    <span className="w-1 h-1 rounded-full bg-amber-500 block" />
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          /* Continuous progress track for up to 100 rotations */
+          <div className="space-y-1">
+            <div className="relative w-full h-2.5 rounded-full bg-slate-100 border border-slate-200 overflow-hidden">
+              {/* Fill */}
+              <div
+                className="h-full bg-gradient-to-r from-emerald-500 via-indigo-500 to-indigo-600 rounded-full transition-all duration-500"
+                style={{
+                  width: `${Math.min(100, Math.max(2, (currentRotationIndex / totalRotations) * 100))}%`,
+                }}
+              />
+              {/* Draw Milestone Notches along the track */}
+              {Array.from({ length: totalRotations }).map((_, idx) => {
+                const rotNum = idx + 1;
+                if (rotNum % rotationsPerDraw !== 0) return null;
+                const posPercent = (rotNum / totalRotations) * 100;
+                const isPassed = rotNum <= currentRotationIndex;
+                return (
+                  <div
+                    key={rotNum}
+                    title={`Draw at Rotation ${rotNum}`}
+                    style={{ left: `${posPercent}%` }}
+                    className={`absolute top-0 bottom-0 w-1 -ml-0.5 z-10 ${
+                      isPassed ? 'bg-amber-300' : 'bg-amber-400'
+                    }`}
+                  />
+                );
+              })}
+            </div>
+            <div className="flex items-center justify-between text-[10px] text-slate-500 font-mono">
+              <span>R1 (Start)</span>
+              <span className="font-bold text-indigo-600">
+                {Math.round((currentRotationIndex / totalRotations) * 100)}% Complete (R{currentRotationIndex}/{totalRotations})
+              </span>
+              <span>R{totalRotations} (End)</span>
+            </div>
+          </div>
+        )}
+
+        {/* Clear Intuitive Legend */}
+        <div className="flex items-center justify-between text-[10px] text-slate-500 pt-0.5">
+          <div className="flex items-center gap-1">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" />
+            <span>Done</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <span className="w-2 h-2 rounded-full bg-indigo-600 inline-block" />
+            <span>Active</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <span className="w-2 h-2 rounded-full bg-slate-100 border border-amber-400 inline-flex items-center justify-center">
+              <span className="w-1 h-1 rounded-full bg-amber-500 block" />
+            </span>
+            <span className="text-amber-700 font-medium">Draw Milestone</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <span className="w-2 h-2 rounded-full bg-slate-200 inline-block" />
+            <span>Upcoming</span>
+          </div>
+        </div>
       </div>
     </div>
   );
