@@ -22,11 +22,29 @@ export interface DBUser {
   avatarUrl?: string | null;
 }
 
+export interface DBGuess {
+  id: string;
+  samityId: string;
+  userId: string;
+  targetMonth: string;
+  guessedMemberId: string;
+  createdAt: string;
+  user?: DBUser;
+  guessedMember?: {
+    id: string;
+    user: {
+      id: string;
+      name: string;
+    };
+  };
+}
+
 export interface DBSamityMember {
   id: string;
   samityId: string;
   userId: string;
   role: 'ADMIN' | 'MEMBER';
+  inActiveCycle: boolean;
   hasWonInCurrentCycle: boolean;
   wonMonth: string | null;
   wonAmount: number | null;
@@ -72,6 +90,25 @@ export interface DBSamity {
   fixedDepositAmount: number;
   currentMonthIndex: number;
   monthsList: string[];
+  drawDayOfMonth: number;
+  drawSchedule: {
+    round: number;
+    rotationIndex?: number;
+    month?: string;
+    drawDate: string;
+    isDrawRotation?: boolean;
+    drawRoundNumber?: number | null;
+    drawn?: boolean;
+    label?: string;
+  }[];
+  cycleActive: boolean;
+  totalRotations: number;
+  rotationsPerDraw: number;
+  currentRotationIndex: number;
+  rotationIntervalType: string;
+  rotationIntervalDays: number;
+  cycleStartDate: string;
+  nextRotationDeadline: string | null;
   bKashNumber: string | null;
   nagadNumber: string | null;
   bankDetails: string | null;
@@ -80,6 +117,7 @@ export interface DBSamity {
   members: DBSamityMember[];
   payments: DBPayment[];
   winners: DBWinner[];
+  guesses: DBGuess[];
 }
 
 interface ToastState {
@@ -156,6 +194,18 @@ interface SamityContextType {
   verifyPayment: (paymentId: string) => Promise<{ success: boolean; error?: string }>;
   drawWinner: (memberId: string, month: string, amount: number) => Promise<{ success: boolean; error?: string }>;
   advanceMonth: () => Promise<{ success: boolean; error?: string }>;
+  configureCycle: (data: {
+    participatingMemberIds?: string[];
+    drawDayOfMonth?: number;
+    totalRotations?: number;
+    rotationIntervalType?: string;
+    rotationIntervalDays?: number;
+    cycleStartDate?: string;
+    currentRotationIndex?: number;
+    drawSchedule?: any[];
+    resetCycle?: boolean;
+  }) => Promise<{ success: boolean; error?: string }>;
+  submitGuess: (targetMonth: string, guessedMemberId: string) => Promise<{ success: boolean; error?: string }>;
 }
 
 const SamityContext = createContext<SamityContextType | null>(null);
@@ -288,10 +338,12 @@ export function SamityProvider({ children }: { children: React.ReactNode }) {
     return currentSamity.payments.filter((p) => p.status === 'PENDING').length;
   }, [currentSamity]);
 
-  // Members eligible for wheel draw (including Admin if hasWonInCurrentCycle is false)
+  // Members eligible for wheel draw (only participating members in this cycle who have not won yet)
   const eligibleWheelMembers = useMemo(() => {
     if (!currentSamity) return [];
-    return currentSamity.members.filter((m) => !m.hasWonInCurrentCycle);
+    return currentSamity.members.filter(
+      (m) => m.inActiveCycle !== false && !m.hasWonInCurrentCycle
+    );
   }, [currentSamity]);
 
   // Actions
@@ -543,6 +595,56 @@ export function SamityProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const configureCycle = async (data: {
+    participatingMemberIds?: string[];
+    drawDayOfMonth?: number;
+    totalRotations?: number;
+    rotationIntervalType?: string;
+    rotationIntervalDays?: number;
+    cycleStartDate?: string;
+    currentRotationIndex?: number;
+    drawSchedule?: any[];
+    resetCycle?: boolean;
+  }) => {
+    if (!currentSamity) return { success: false, error: 'No active Samity' };
+    try {
+      const res = await fetch(`/api/samity/${currentSamity.id}/cycle`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      const resData = await res.json();
+      if (!res.ok) {
+        return { success: false, error: resData.error || 'Failed to update cycle' };
+      }
+      await refreshSamity();
+      showToast(resData.message || 'Cycle schedule updated', 'CYCLE SAVED');
+      return { success: true };
+    } catch {
+      return { success: false, error: 'Network error updating cycle' };
+    }
+  };
+
+  const submitGuess = async (targetMonth: string, guessedMemberId: string) => {
+    if (!currentSamity) return { success: false, error: 'No active Samity' };
+    try {
+      const res = await fetch(`/api/samity/${currentSamity.id}/guess`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ targetMonth, guessedMemberId }),
+      });
+      const resData = await res.json();
+      if (!res.ok) {
+        return { success: false, error: resData.error || 'Failed to place guess' };
+      }
+      await refreshSamity();
+      showToast(resData.message || 'Your prediction has been recorded!', 'GUESS SAVED');
+      return { success: true };
+    } catch {
+      return { success: false, error: 'Network error placing guess' };
+    }
+  };
+
   const value = useMemo(
     () => ({
       currentUser,
@@ -578,6 +680,8 @@ export function SamityProvider({ children }: { children: React.ReactNode }) {
       verifyPayment,
       drawWinner,
       advanceMonth,
+      configureCycle,
+      submitGuess,
     }),
     [
       currentUser,
@@ -612,6 +716,8 @@ export function SamityProvider({ children }: { children: React.ReactNode }) {
       verifyPayment,
       drawWinner,
       advanceMonth,
+      configureCycle,
+      submitGuess,
     ]
   );
 

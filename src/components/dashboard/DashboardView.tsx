@@ -3,6 +3,7 @@
 import React from 'react';
 import { useSamity } from '@/context/SamityContext';
 import { ArrowUpRight, Disc, CheckCircle2, Clock, FileText, AlertCircle } from 'lucide-react';
+import { RotationCountdownCard } from './RotationCountdownCard';
 
 export function DashboardView() {
   const {
@@ -92,6 +93,9 @@ export function DashboardView() {
           </div>
         </div>
       </div>
+
+      {/* Active Rotation & Countdown Card */}
+      <RotationCountdownCard />
 
       {/* Quick Actions */}
       <div className="grid grid-cols-2 gap-2.5">

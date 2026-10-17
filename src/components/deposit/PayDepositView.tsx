@@ -17,6 +17,9 @@ export function PayDepositView() {
   const { currentSamity, currentMonth, currentUser, submitPayment, showToast } = useSamity();
 
   const [method, setMethod] = useState<PaymentMethod>('bKash');
+  const [targetRotation, setTargetRotation] = useState<number>(
+    currentSamity?.currentRotationIndex || 1
+  );
   const [trxId, setTrxId] = useState('');
   const [cashNote, setCashNote] = useState('');
   const [screenshotDataUri, setScreenshotDataUri] = useState('');
@@ -127,6 +130,7 @@ export function PayDepositView() {
         return;
       }
       const cashTrx = 'CASH-' + Date.now().toString().slice(-6);
+      const rotationLabel = `Rotation ${targetRotation}`;
       const defaultCashReceipt =
         screenshotDataUri ||
         createSampleReceiptDataUri(
@@ -134,11 +138,11 @@ export function PayDepositView() {
           cashTrx,
           currentSamity.fixedDepositAmount,
           currentUser.name,
-          currentMonth
+          rotationLabel
         );
 
       const res = await submitPayment({
-        month: currentMonth,
+        month: rotationLabel,
         amount: currentSamity.fixedDepositAmount,
         method: 'Cash on Hand',
         trxId: cashNote.trim(),
@@ -163,8 +167,9 @@ export function PayDepositView() {
       return;
     }
 
+    const rotationLabel = `Rotation ${targetRotation}`;
     const res = await submitPayment({
-      month: currentMonth,
+      month: rotationLabel,
       amount: currentSamity.fixedDepositAmount,
       method,
       trxId: trxId.trim().toUpperCase(),
@@ -182,9 +187,9 @@ export function PayDepositView() {
     <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
       <div className="px-4 py-3.5 border-b border-slate-100 flex items-center justify-between">
         <div>
-          <h2 className="text-sm font-bold text-slate-900">Add Monthly Deposit</h2>
+          <h2 className="text-sm font-bold text-slate-900">Add Deposit Contribution</h2>
           <p className="text-xs text-slate-500 font-medium">
-            {currentSamity.name} • {currentMonth}
+            {currentSamity.name} • Rotation {targetRotation}
           </p>
         </div>
         <span className="px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 text-xs font-bold border border-indigo-100/60">
@@ -193,6 +198,27 @@ export function PayDepositView() {
       </div>
 
       <form onSubmit={handleSubmit} className="p-4 space-y-4">
+        {/* Step 0: Cycle Rotation Target */}
+        <div className="p-3 rounded-xl bg-indigo-50/70 border border-indigo-100 flex items-center justify-between">
+          <div>
+            <div className="text-xs font-bold text-indigo-950">Target Rotation Period:</div>
+            <div className="text-[11px] text-indigo-600 font-medium">
+              Active cycle currently on Rotation {currentSamity.currentRotationIndex || 1}
+            </div>
+          </div>
+          <select
+            value={targetRotation}
+            onChange={(e) => setTargetRotation(Number(e.target.value) || 1)}
+            className="px-2.5 py-1.5 rounded-lg border border-indigo-200 bg-white font-bold text-xs font-mono text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          >
+            {Array.from({ length: currentSamity.totalRotations || 6 }).map((_, idx) => (
+              <option key={idx + 1} value={idx + 1}>
+                Rotation {idx + 1} {((idx + 1) === (currentSamity.currentRotationIndex || 1)) ? '⭐ (Active)' : ''}
+              </option>
+            ))}
+          </select>
+        </div>
+
         {/* Step 1: Select Method */}
         <div>
           <label className="block text-xs font-semibold text-slate-700 mb-2">

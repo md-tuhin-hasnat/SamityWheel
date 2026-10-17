@@ -17,6 +17,7 @@ model User {
   updatedAt   DateTime       @updatedAt
   memberships SamityMember[]
   payments    Payment[]
+  guesses     Guess[]
 }
 
 model Samity {
@@ -26,16 +27,27 @@ model Samity {
   fixedDepositAmount Float          @default(5000)
   currentMonthIndex  Int            @default(0)
   monthsList         String         @default("[\"October 2026\",\"November 2026\",\"December 2026\",\"January 2027\",\"February 2027\",\"March 2027\"]")
-  bKashNumber        String?        @default("01700-998877")
-  nagadNumber        String?        @default("01800-112233")
-  bankDetails        String?        @default("City Bank, A/C: 1502-8899-001, Branch: Gulshan")
-  cashInstructions   String?        @default("Handover cash directly to Samity Admin")
-  creatorId          String
-  createdAt          DateTime       @default(now())
-  updatedAt          DateTime       @updatedAt
-  members            SamityMember[]
-  payments           Payment[]
-  winners            Winner[]
+  drawDayOfMonth       Int            @default(15)
+  drawSchedule         String?        @default("[]")
+  cycleActive          Boolean        @default(true)
+  totalRotations       Int            @default(6)
+  rotationsPerDraw     Int            @default(2)
+  currentRotationIndex Int            @default(1)
+  rotationIntervalType String         @default("WEEK") // "DAY" | "WEEK" | "BIWEEKLY" | "MONTH" | "CUSTOM"
+  rotationIntervalDays Int            @default(7)
+  cycleStartDate       DateTime       @default(now())
+  nextRotationDeadline DateTime?
+  bKashNumber          String?        @default("01700-998877")
+  nagadNumber          String?        @default("01800-112233")
+  bankDetails          String?        @default("City Bank, A/C: 1502-8899-001, Branch: Gulshan")
+  cashInstructions     String?        @default("Handover cash directly to Samity Admin")
+  creatorId            String
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
+  members              SamityMember[]
+  payments             Payment[]
+  winners              Winner[]
+  guesses              Guess[]
 }
 
 model SamityMember {
@@ -43,6 +55,7 @@ model SamityMember {
   samityId             String
   userId               String
   role                 String    @default("MEMBER") // "ADMIN" or "MEMBER"
+  inActiveCycle        Boolean   @default(true)
   hasWonInCurrentCycle Boolean   @default(false)
   wonMonth             String?
   wonAmount            Float?
@@ -51,35 +64,52 @@ model SamityMember {
   user                 User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   payments             Payment[]
   winners              Winner[]
+  guessesReceived      Guess[]   @relation("GuessesReceived")
 
   @@unique([samityId, userId])
 }
 
 model Payment {
-  id          String       @id @default(cuid())
-  samityId    String
-  memberId    String
-  userId      String
-  month       String
-  amount      Float
-  method      String // "bKash" | "Nagad" | "Bank Transfer" | "Cash on Hand"
-  trxId       String
-  screenshot  String
-  status      String       @default("PENDING") // "PENDING" | "VERIFIED" | "REJECTED"
-  verifiedAt  DateTime?
-  createdAt   DateTime     @default(now())
-  samity      Samity       @relation(fields: [samityId], references: [id], onDelete: Cascade)
-  member      SamityMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
-  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id            String       @id @default(cuid())
+  samityId      String
+  memberId      String
+  userId        String
+  month         String
+  rotationIndex Int?         @default(1)
+  amount        Float
+  method        String // "bKash" | "Nagad" | "Bank Transfer" | "Cash on Hand"
+  trxId         String
+  screenshot    String
+  status        String       @default("PENDING") // "PENDING" | "VERIFIED" | "REJECTED"
+  verifiedAt    DateTime?
+  createdAt     DateTime     @default(now())
+  samity        Samity       @relation(fields: [samityId], references: [id], onDelete: Cascade)
+  member        SamityMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Winner {
-  id       String       @id @default(cuid())
-  samityId String
-  memberId String
-  month    String
-  amount   Float
-  wonAt    DateTime     @default(now())
-  samity   Samity       @relation(fields: [samityId], references: [id], onDelete: Cascade)
-  member   SamityMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  id            String       @id @default(cuid())
+  samityId      String
+  memberId      String
+  month         String
+  rotationIndex Int?         @default(1)
+  amount        Float
+  wonAt         DateTime     @default(now())
+  samity        Samity       @relation(fields: [samityId], references: [id], onDelete: Cascade)
+  member        SamityMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
+}
+
+model Guess {
+  id              String       @id @default(cuid())
+  samityId        String
+  userId          String
+  targetMonth     String
+  guessedMemberId String
+  createdAt       DateTime     @default(now())
+  samity          Samity       @relation(fields: [samityId], references: [id], onDelete: Cascade)
+  user            User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  guessedMember   SamityMember @relation("GuessesReceived", fields: [guessedMemberId], references: [id], onDelete: Cascade)
+
+  @@unique([samityId, userId, targetMonth])
 }

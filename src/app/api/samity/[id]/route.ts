@@ -53,6 +53,28 @@ export async function GET(
           },
           orderBy: { wonAt: 'desc' },
         },
+        guesses: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                phone: true,
+              },
+            },
+            guessedMember: {
+              include: {
+                user: {
+                  select: {
+                    id: true,
+                    name: true,
+                  },
+                },
+              },
+            },
+          },
+          orderBy: { createdAt: 'desc' },
+        },
       },
     });
 
@@ -69,6 +91,7 @@ export async function GET(
       samity: {
         ...samity,
         monthsList: JSON.parse(samity.monthsList || '[]'),
+        drawSchedule: JSON.parse(samity.drawSchedule || '[]'),
       },
       currentMember: currentMember || null,
       isAdmin: currentMember?.role === 'ADMIN',
