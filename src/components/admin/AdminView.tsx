@@ -451,8 +451,8 @@ export function AdminView() {
 
             <button
               type="submit"
-              disabled={isTransferring || !targetMemberId}
-              className="w-full py-3 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs transition active:scale-98 shadow-xs disabled:opacity-50"
+              disabled={isTransferring}
+              className="w-full py-3 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs transition active:scale-98 shadow-xs disabled:opacity-50 cursor-pointer"
             >
               {isTransferring ? 'Transferring Role...' : 'Transfer Admin Access Now'}
             </button>
@@ -538,6 +538,61 @@ export function AdminView() {
               </button>
             </div>
           </form>
+        </div>
+      )}
+
+      {/* Transfer Admin In-App Confirmation Modal */}
+      {showConfirmModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="w-full max-w-sm bg-white rounded-3xl p-5 shadow-2xl border border-slate-200 space-y-4">
+            <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center mx-auto">
+              <ShieldAlert className="w-6 h-6" />
+            </div>
+
+            <div className="text-center space-y-1">
+              <h4 className="text-base font-extrabold text-slate-900">
+                Confirm Admin Transfer
+              </h4>
+              <p className="text-xs text-slate-500">
+                You are about to transfer complete administrative privileges of this Samity to:
+              </p>
+            </div>
+
+            <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200 text-center">
+              <div className="text-sm font-extrabold text-slate-900">
+                {currentSamity.members.find((m) => m.id === targetMemberId)?.user.name}
+              </div>
+              <div className="text-xs text-slate-500 font-mono mt-0.5">
+                {currentSamity.members.find((m) => m.id === targetMemberId)?.user.phone}
+              </div>
+            </div>
+
+            <div className="text-[11px] text-slate-600 bg-amber-50/80 p-3 rounded-xl border border-amber-200/70 space-y-1">
+              <p className="font-bold text-amber-900">Your Member Status Retained:</p>
+              <p>
+                You will atomically become a regular Member. All your verified deposits, saved total, and monthly wheel lottery eligibility remain 100% active.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => setShowConfirmModal(false)}
+                disabled={isTransferring}
+                className="py-2.5 rounded-xl border border-slate-200 text-slate-700 font-bold text-xs hover:bg-slate-50 transition active:scale-98 cursor-pointer disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmTransfer}
+                disabled={isTransferring}
+                className="py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs transition active:scale-98 shadow-sm cursor-pointer disabled:opacity-50"
+              >
+                {isTransferring ? 'Transferring...' : 'Yes, Transfer'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
