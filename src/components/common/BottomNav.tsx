@@ -9,25 +9,33 @@ interface NavItem {
   id: AppView;
   label: string;
   icon: React.ElementType;
+  adminOnly?: boolean;
 }
 
-const NAV_ITEMS: NavItem[] = [
+const ALL_NAV_ITEMS: NavItem[] = [
   { id: 'dashboard', label: 'Home', icon: Home },
   { id: 'pay', label: 'Pay', icon: PlusCircle },
   { id: 'wheel', label: 'Wheel', icon: Disc },
   { id: 'winners', label: 'Winners', icon: Trophy },
-  { id: 'admin', label: 'Admin', icon: ShieldCheck },
+  { id: 'admin', label: 'Admin', icon: ShieldCheck, adminOnly: true },
 ];
 
 export function BottomNav() {
-  const { state, setActiveView, pendingPaymentsCount } = useSamity();
+  const { activeView, setActiveView, isAdmin, pendingPaymentsCount } = useSamity();
+
+  // Filter based on user type: Admin tab is ONLY visible to the Admin!
+  const visibleItems = ALL_NAV_ITEMS.filter((item) => !item.adminOnly || isAdmin);
 
   return (
-    <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white/95 backdrop-blur-md border-t border-slate-200 z-30 grid grid-cols-5 py-1 px-1 safe-bottom shadow-lg">
-      {NAV_ITEMS.map((item) => {
+    <nav
+      className={`fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white/95 backdrop-blur-md border-t border-slate-200 z-30 grid py-1 px-1 safe-bottom shadow-lg ${
+        visibleItems.length === 5 ? 'grid-cols-5' : 'grid-cols-4'
+      }`}
+    >
+      {visibleItems.map((item) => {
         const Icon = item.icon;
-        const isActive = state.activeView === item.id;
-        const isAdmin = item.id === 'admin';
+        const isActive = activeView === item.id;
+        const isSpecialAdmin = item.id === 'admin';
 
         return (
           <button
@@ -40,7 +48,7 @@ export function BottomNav() {
           >
             <div className="relative">
               <Icon className={`w-5 h-5 transition-transform ${isActive ? 'scale-110' : ''}`} />
-              {isAdmin && pendingPaymentsCount > 0 && (
+              {isSpecialAdmin && pendingPaymentsCount > 0 && (
                 <span className="absolute -top-1 -right-2 w-2.5 h-2.5 rounded-full bg-amber-500 ring-2 ring-white animate-pulse" />
               )}
             </div>

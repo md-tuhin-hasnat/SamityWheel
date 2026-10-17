@@ -2,13 +2,24 @@
 
 import React from 'react';
 import { useSamity } from '@/context/SamityContext';
-import { Trophy, CheckCircle2, Users } from 'lucide-react';
+import { Trophy, CheckCircle2, Users, ShieldCheck, AlertCircle } from 'lucide-react';
 
 export function WinnersView() {
-  const { memberUsers, state } = useSamity();
+  const { currentSamity } = useSamity();
 
-  const totalMembers = memberUsers.length;
-  const winnersCount = memberUsers.filter((u) => u.hasWon).length;
+  if (!currentSamity) {
+    return (
+      <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center space-y-3">
+        <AlertCircle className="w-8 h-8 text-indigo-600 mx-auto" />
+        <h3 className="text-sm font-bold text-slate-800">No Active Samity</h3>
+        <p className="text-xs text-slate-500">Please select or join a Samity first.</p>
+      </div>
+    );
+  }
+
+  const members = currentSamity.members;
+  const totalMembers = members.length;
+  const winnersCount = members.filter((m) => m.hasWonInCurrentCycle).length;
   const progressPercent = totalMembers > 0 ? Math.round((winnersCount / totalMembers) * 100) : 0;
 
   return (
@@ -45,9 +56,9 @@ export function WinnersView() {
       <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden">
         <div className="px-4 py-3.5 border-b border-slate-100 flex items-center justify-between">
           <div>
-            <h2 className="text-sm font-bold text-slate-900">Members &amp; Past Winners</h2>
+            <h2 className="text-sm font-bold text-slate-900">Members &amp; Winner Roster</h2>
             <p className="text-xs text-slate-500 font-medium">
-              Fair cycle: Each member wins exactly once
+              Fair cycle: Each member wins once per cycle
             </p>
           </div>
           <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 flex items-center gap-1">
@@ -57,13 +68,15 @@ export function WinnersView() {
         </div>
 
         <div className="divide-y divide-slate-100">
-          {memberUsers.map((member) => {
-            const initials = member.name
+          {members.map((member) => {
+            const initials = member.user.name
               .split(' ')
               .map((n) => n[0])
               .join('')
               .slice(0, 2)
               .toUpperCase();
+
+            const isMemberAdmin = member.role === 'ADMIN';
 
             return (
               <div
@@ -73,28 +86,38 @@ export function WinnersView() {
                 <div className="flex items-center gap-3">
                   <div
                     className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs text-white shadow-2xs ${
-                      member.hasWon ? 'bg-amber-500' : 'bg-indigo-600'
+                      member.hasWonInCurrentCycle ? 'bg-amber-500' : 'bg-indigo-600'
                     }`}
                   >
                     {initials}
                   </div>
                   <div>
                     <div className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                      <span>{member.name}</span>
-                      {member.hasWon && <Trophy className="w-3 h-3 text-amber-500" />}
+                      <span>{member.user.name}</span>
+                      {isMemberAdmin && (
+                        <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200/60 flex items-center gap-0.5">
+                          <ShieldCheck className="w-2.5 h-2.5" />
+                          Admin
+                        </span>
+                      )}
+                      {member.hasWonInCurrentCycle && (
+                        <Trophy className="w-3 h-3 text-amber-500" />
+                      )}
                     </div>
-                    <div className="text-[11px] text-slate-500 font-medium">{member.phone}</div>
+                    <div className="text-[11px] text-slate-500 font-medium font-mono">
+                      {member.user.phone}
+                    </div>
                   </div>
                 </div>
 
                 <div className="text-right">
-                  {member.hasWon ? (
+                  {member.hasWonInCurrentCycle ? (
                     <div>
                       <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200/50 uppercase tracking-wide">
                         Won {member.wonMonth?.split(' ')[0]}
                       </span>
                       <div className="text-xs font-extrabold text-slate-900 mt-0.5">
-                        BDT {member.wonAmount.toLocaleString()}
+                        BDT {(member.wonAmount || 0).toLocaleString()}
                       </div>
                     </div>
                   ) : (
@@ -110,22 +133,22 @@ export function WinnersView() {
         </div>
       </div>
 
-      {/* Past Winners History Archive */}
-      {state.winnersHistory.length > 0 && (
+      {/* Past Winners Archive */}
+      {currentSamity.winners.length > 0 && (
         <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden">
           <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
             <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
               Cycle Draw Archive
             </h3>
             <span className="text-xs text-slate-500 font-medium">
-              {state.winnersHistory.length} draws completed
+              {currentSamity.winners.length} draws completed
             </span>
           </div>
           <div className="divide-y divide-slate-100">
-            {state.winnersHistory.map((item, idx) => (
-              <div key={idx} className="p-3.5 flex items-center justify-between text-xs">
+            {currentSamity.winners.map((item) => (
+              <div key={item.id} className="p-3.5 flex items-center justify-between text-xs">
                 <div>
-                  <div className="font-bold text-slate-900">{item.userName}</div>
+                  <div className="font-bold text-slate-900">{item.member.user.name}</div>
                   <div className="text-[11px] text-slate-500 font-medium">{item.month}</div>
                 </div>
                 <div className="text-right font-extrabold text-emerald-700">

@@ -2,36 +2,57 @@
 
 import React from 'react';
 import { useSamity } from '@/context/SamityContext';
-import { ArrowUpRight, Disc, CheckCircle2, Clock, FileText } from 'lucide-react';
+import { ArrowUpRight, Disc, CheckCircle2, Clock, FileText, AlertCircle } from 'lucide-react';
 
 export function DashboardView() {
-  const { state, currentMonth, currentUser, verifiedPot, setActiveView, openReceiptModal } = useSamity();
+  const {
+    currentUser,
+    currentSamity,
+    currentMonth,
+    verifiedPot,
+    setActiveView,
+    openReceiptModal,
+  } = useSamity();
 
-  // User's verified total
-  const userVerifiedPayments = state.payments.filter(
-    (p) => p.userId === currentUser.id && p.status === 'verified'
+  if (!currentSamity || !currentUser) {
+    return (
+      <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center space-y-3">
+        <AlertCircle className="w-8 h-8 text-indigo-600 mx-auto" />
+        <h3 className="text-sm font-bold text-slate-800">No Active Samity Selected</h3>
+        <p className="text-xs text-slate-500">
+          Create or join a Samity from the top header menu to begin tracking deposits and lucky wheel draws.
+        </p>
+      </div>
+    );
+  }
+
+  // User's verified total in this Samity
+  const myVerifiedPayments = currentSamity.payments.filter(
+    (p) => p.userId === currentUser.id && p.status === 'VERIFIED'
   );
-  const userTotalSaved = userVerifiedPayments.reduce((sum, p) => sum + Number(p.amount), 0);
-  const monthsPaidCount = userVerifiedPayments.length;
+  const userTotalSaved = myVerifiedPayments.reduce((sum, p) => sum + p.amount, 0);
+  const monthsPaidCount = myVerifiedPayments.length;
 
   // Current month payment status for active user
-  const currentMonthPayment = state.payments.find(
+  const currentMonthPayment = currentSamity.payments.find(
     (p) => p.userId === currentUser.id && p.month === currentMonth
   );
 
-  // All payments for active user
-  const myPayments = state.payments.filter((p) => p.userId === currentUser.id);
+  // All payments for active user in this Samity
+  const myPayments = currentSamity.payments.filter((p) => p.userId === currentUser.id);
 
   return (
     <div className="space-y-4">
       {/* Primary Balance Card */}
       <div className="bg-gradient-to-br from-indigo-600 via-indigo-700 to-violet-800 rounded-2xl p-5 text-white shadow-md relative overflow-hidden">
         <div className="absolute -right-8 -bottom-8 w-36 h-36 bg-white/10 rounded-full blur-2xl pointer-events-none" />
-        
+
         <div className="flex items-center justify-between">
-          <span className="text-xs font-medium text-indigo-100 uppercase tracking-wider">My Total Saved</span>
+          <span className="text-xs font-medium text-indigo-100 uppercase tracking-wider">
+            My Total Saved
+          </span>
           <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-white/20 text-white backdrop-blur-xs">
-            BDT {state.fixedDepositAmount.toLocaleString()} / mo
+            BDT {currentSamity.fixedDepositAmount.toLocaleString()} / mo
           </span>
         </div>
 
@@ -44,14 +65,16 @@ export function DashboardView() {
 
         <div className="grid grid-cols-2 gap-2.5 mt-5 pt-4 border-t border-white/15">
           <div>
-            <div className="text-[11px] text-indigo-200 font-medium">This Month ({currentMonth})</div>
+            <div className="text-[11px] text-indigo-200 font-medium">
+              This Month ({currentMonth})
+            </div>
             <div className="text-sm font-bold flex items-center gap-1.5 mt-0.5">
-              {currentMonthPayment?.status === 'verified' ? (
+              {currentMonthPayment?.status === 'VERIFIED' ? (
                 <>
                   <CheckCircle2 className="w-4 h-4 text-emerald-300" />
                   <span className="text-emerald-200">Paid & Verified</span>
                 </>
-              ) : currentMonthPayment?.status === 'pending' ? (
+              ) : currentMonthPayment?.status === 'PENDING' ? (
                 <>
                   <Clock className="w-4 h-4 text-amber-300" />
                   <span className="text-amber-200">Pending Approval</span>
@@ -81,7 +104,7 @@ export function DashboardView() {
             <ArrowUpRight className="w-4 h-4" />
           </div>
           <div className="text-xs font-bold text-slate-900">Make Deposit</div>
-          <div className="text-[11px] text-slate-500 font-medium">bKash, Nagad, Bank</div>
+          <div className="text-[11px] text-slate-500 font-medium">bKash, Nagad, Bank, Cash</div>
         </button>
 
         <button
@@ -92,8 +115,8 @@ export function DashboardView() {
           <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center mb-2 group-hover:bg-amber-600 group-hover:text-white transition">
             <Disc className="w-4 h-4" />
           </div>
-          <div className="text-xs font-bold text-slate-900">Live Wheel</div>
-          <div className="text-[11px] text-slate-500 font-medium">Spin lucky winner</div>
+          <div className="text-xs font-bold text-slate-900">Lucky Wheel</div>
+          <div className="text-[11px] text-slate-500 font-medium">Monthly draw pot</div>
         </button>
       </div>
 
@@ -101,8 +124,8 @@ export function DashboardView() {
       <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden">
         <div className="px-4 py-3.5 border-b border-slate-100 flex items-center justify-between">
           <div>
-            <h2 className="text-sm font-bold text-slate-900">My Deposit History</h2>
-            <p className="text-xs text-slate-500 font-medium">Account: {currentUser.name}</p>
+            <h2 className="text-sm font-bold text-slate-900">My Deposit Ledger</h2>
+            <p className="text-xs text-slate-500 font-medium">{currentUser.name}</p>
           </div>
           <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">
             {myPayments.length} entries
@@ -112,17 +135,20 @@ export function DashboardView() {
         <div className="divide-y divide-slate-100">
           {myPayments.length === 0 ? (
             <div className="p-6 text-center text-xs text-slate-400">
-              No deposit records found for this member.
+              No deposit records submitted yet for this member.
             </div>
           ) : (
             myPayments.map((p) => (
-              <div key={p.id} className="p-4 flex items-center justify-between hover:bg-slate-50/50 transition">
+              <div
+                key={p.id}
+                className="p-4 flex items-center justify-between hover:bg-slate-50/50 transition"
+              >
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-bold text-slate-900">{p.month}</span>
                     <span
                       className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${
-                        p.status === 'verified'
+                        p.status === 'VERIFIED'
                           ? 'bg-emerald-50 text-emerald-700 border border-emerald-200/50'
                           : 'bg-amber-50 text-amber-700 border border-amber-200/50'
                       }`}
@@ -144,11 +170,17 @@ export function DashboardView() {
                   {p.screenshot && (
                     <button
                       type="button"
-                      onClick={() => openReceiptModal(p.screenshot, `${p.method} Receipt`, `${p.month} — ${p.trxId}`)}
+                      onClick={() =>
+                        openReceiptModal(
+                          p.screenshot,
+                          `${p.method} Receipt Proof`,
+                          `${p.month} — ${p.trxId}`
+                        )
+                      }
                       className="text-[11px] font-semibold text-indigo-600 hover:text-indigo-800 flex items-center gap-1 active:scale-95 transition"
                     >
                       <FileText className="w-3 h-3" />
-                      <span>View Proof</span>
+                      <span>View Voucher</span>
                     </button>
                   )}
                 </div>

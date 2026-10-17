@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useSamity } from '@/context/SamityContext';
 import { PaymentMethod } from '@/types/samity';
 import { createSampleReceiptDataUri } from '@/lib/receiptSvg';
-import { Upload, Wand2, Check, Trash2 } from 'lucide-react';
+import { Upload, Wand2, Check, Trash2, AlertCircle } from 'lucide-react';
 
 const PAYMENT_METHODS: { id: PaymentMethod; label: string; sub: string }[] = [
   { id: 'bKash', label: 'bKash', sub: 'TrxID + Screenshot' },
@@ -13,23 +13,58 @@ const PAYMENT_METHODS: { id: PaymentMethod; label: string; sub: string }[] = [
   { id: 'Cash on Hand', label: 'Cash on Hand', sub: 'Direct Handover' },
 ];
 
-const METHOD_INSTRUCTIONS: Record<PaymentMethod, { title: string; detail: string }> = {
-  bKash: { title: 'Send to Admin bKash:', detail: '01700-998877 (Personal)' },
-  Nagad: { title: 'Send to Admin Nagad:', detail: '01800-112233 (Personal)' },
-  'Bank Transfer': { title: 'Admin City Bank A/C:', detail: '1502-8899-001 (Gulshan)' },
-  'Cash on Hand': { title: 'Handover in Person:', detail: 'Deliver cash to Admin Karim' },
-};
-
 export function PayDepositView() {
-  const { state, currentMonth, currentUser, submitPayment, showToast } = useSamity();
+  const { currentSamity, currentMonth, currentUser, submitPayment, showToast } = useSamity();
 
   const [method, setMethod] = useState<PaymentMethod>('bKash');
   const [trxId, setTrxId] = useState('');
   const [cashNote, setCashNote] = useState('');
   const [screenshotDataUri, setScreenshotDataUri] = useState('');
   const [screenshotFileName, setScreenshotFileName] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  if (!currentSamity || !currentUser) {
+    return (
+      <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center space-y-3">
+        <AlertCircle className="w-8 h-8 text-indigo-600 mx-auto" />
+        <h3 className="text-sm font-bold text-slate-800">No Active Samity</h3>
+        <p className="text-xs text-slate-500">Please select or join a Samity first.</p>
+      </div>
+    );
+  }
 
   const isCash = method === 'Cash on Hand';
+
+  // Dynamically resolve the active Samity Admin from members list
+  const adminMember = currentSamity.members.find((m) => m.role === 'ADMIN');
+  const adminUser = adminMember?.user;
+  const adminName = adminUser?.name || 'Samity Admin';
+  const adminPhone = adminUser?.phone || '';
+
+  const getInstructions = () => {
+    switch (method) {
+      case 'bKash':
+        return {
+          title: `Send to Admin (${adminName}) bKash:`,
+          detail: currentSamity.bKashNumber || (adminPhone ? `${adminPhone} (Personal)` : '01700-998877 (Personal)'),
+        };
+      case 'Nagad':
+        return {
+          title: `Send to Admin (${adminName}) Nagad:`,
+          detail: currentSamity.nagadNumber || (adminPhone ? `${adminPhone} (Personal)` : '01800-112233 (Personal)'),
+        };
+      case 'Bank Transfer':
+        return {
+          title: `Admin (${adminName}) Bank Account:`,
+          detail: currentSamity.bankDetails || 'City Bank, A/C: 1502-8899-001',
+        };
+      case 'Cash on Hand':
+        return {
+          title: 'Cash Handover Instructions:',
+          detail: `Handover cash directly to Samity Admin (${adminName}${adminPhone ? ` • ${adminPhone}` : ''})`,
+        };
+    }
+  };
 
   const handleGenerateSampleTrx = () => {
     const prefixes: Record<PaymentMethod, string> = {
@@ -42,7 +77,7 @@ export function PayDepositView() {
     const initials = currentUser.name.split(' ').map((n) => n[0]).join('').slice(0, 3).toUpperCase();
     const generated = `${prefixes[method]}${randomHex}${initials}`;
     setTrxId(generated);
-    showToast(`Generated TrxID: ${generated}`, 'AUTO');
+    showToast(`Generated Reference: ${generated}`, 'AUTO');
   };
 
   const handleUseSampleReceipt = () => {
@@ -52,13 +87,13 @@ export function PayDepositView() {
     const uri = createSampleReceiptDataUri(
       method,
       activeTrx,
-      state.fixedDepositAmount,
+      currentSamity.fixedDepositAmount,
       currentUser.name,
       currentMonth
     );
     setScreenshotDataUri(uri);
-    setScreenshotFileName(`${method}_sample_receipt.svg`);
-    showToast('Sample digital receipt proof generated!', 'RECEIPT');
+    setScreenshotFileName(`${method}_digital_voucher.svg`);
+    showToast('Digital payment voucher generated!', 'RECEIPT');
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -75,23 +110,20 @@ export function PayDepositView() {
       if (typeof reader.result === 'string') {
         setScreenshotDataUri(reader.result);
         setScreenshotFileName(file.name);
-        showToast('Receipt image attached', 'UPLOAD');
+        showToast('Receipt voucher attached', 'UPLOAD');
       }
     };
     reader.readAsDataURL(file);
   };
 
-  const handleClearScreenshot = () => {
-    setScreenshotDataUri('');
-    setScreenshotFileName('');
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
 
     if (isCash) {
       if (!cashNote.trim()) {
         showToast('Please specify the receiver note for cash payment', 'REQUIRED');
+        setIsSubmitting(false);
         return;
       }
       const cashTrx = 'CASH-' + Date.now().toString().slice(-6);
@@ -100,51 +132,63 @@ export function PayDepositView() {
         createSampleReceiptDataUri(
           'Cash on Hand',
           cashTrx,
-          state.fixedDepositAmount,
+          currentSamity.fixedDepositAmount,
           currentUser.name,
           currentMonth
         );
 
-      submitPayment({
-        userId: currentUser.id,
+      const res = await submitPayment({
         month: currentMonth,
-        amount: state.fixedDepositAmount,
+        amount: currentSamity.fixedDepositAmount,
         method: 'Cash on Hand',
         trxId: cashNote.trim(),
         screenshot: defaultCashReceipt,
       });
+      setIsSubmitting(false);
+      if (!res.success) {
+        showToast(res.error || 'Failed to submit payment', 'ERROR');
+      }
       return;
     }
 
     if (!trxId.trim()) {
       showToast('Please enter the Transaction ID / Reference', 'REQUIRED');
+      setIsSubmitting(false);
       return;
     }
 
     if (!screenshotDataUri) {
-      showToast('Please attach or generate a transaction screenshot proof', 'REQUIRED');
+      showToast('Please attach a screenshot or generate a sample voucher', 'REQUIRED');
+      setIsSubmitting(false);
       return;
     }
 
-    submitPayment({
-      userId: currentUser.id,
+    const res = await submitPayment({
       month: currentMonth,
-      amount: state.fixedDepositAmount,
+      amount: currentSamity.fixedDepositAmount,
       method,
       trxId: trxId.trim().toUpperCase(),
       screenshot: screenshotDataUri,
     });
+    setIsSubmitting(false);
+    if (!res.success) {
+      showToast(res.error || 'Failed to submit payment', 'ERROR');
+    }
   };
+
+  const instructions = getInstructions();
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
       <div className="px-4 py-3.5 border-b border-slate-100 flex items-center justify-between">
         <div>
           <h2 className="text-sm font-bold text-slate-900">Add Monthly Deposit</h2>
-          <p className="text-xs text-slate-500 font-medium">{currentMonth}</p>
+          <p className="text-xs text-slate-500 font-medium">
+            {currentSamity.name} • {currentMonth}
+          </p>
         </div>
         <span className="px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 text-xs font-bold border border-indigo-100/60">
-          BDT {state.fixedDepositAmount.toLocaleString()}
+          BDT {currentSamity.fixedDepositAmount.toLocaleString()}
         </span>
       </div>
 
@@ -152,7 +196,7 @@ export function PayDepositView() {
         {/* Step 1: Select Method */}
         <div>
           <label className="block text-xs font-semibold text-slate-700 mb-2">
-            1. Select Payment Method
+            1. Select Payment Channel
           </label>
           <div className="grid grid-cols-2 gap-2">
             {PAYMENT_METHODS.map((m) => {
@@ -182,18 +226,16 @@ export function PayDepositView() {
           </div>
         </div>
 
-        {/* Send-To Instructions Box */}
+        {/* Instructions Box */}
         <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between text-xs">
           <div>
-            <div className="text-slate-500 font-medium">{METHOD_INSTRUCTIONS[method].title}</div>
-            <div className="font-bold text-slate-900 mt-0.5 font-mono">
-              {METHOD_INSTRUCTIONS[method].detail}
-            </div>
+            <div className="text-slate-500 font-medium">{instructions.title}</div>
+            <div className="font-bold text-slate-900 mt-0.5 font-mono">{instructions.detail}</div>
           </div>
           <div className="text-right">
             <div className="text-slate-500 font-medium">Fixed Amount</div>
             <div className="font-extrabold text-indigo-600">
-              BDT {state.fixedDepositAmount.toLocaleString()}
+              BDT {currentSamity.fixedDepositAmount.toLocaleString()}
             </div>
           </div>
         </div>
@@ -227,7 +269,7 @@ export function PayDepositView() {
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                3. Transaction Screenshot Proof
+                3. Transaction Screenshot / Proof
               </label>
               <div className="grid grid-cols-2 gap-2">
                 <label className="cursor-pointer py-2.5 px-3 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 text-center transition flex items-center justify-center gap-1.5 active:scale-98">
@@ -245,7 +287,7 @@ export function PayDepositView() {
                   onClick={handleUseSampleReceipt}
                   className="py-2.5 px-3 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold transition active:scale-98"
                 >
-                  Sample Receipt
+                  Sample Voucher
                 </button>
               </div>
 
@@ -261,7 +303,7 @@ export function PayDepositView() {
                     />
                     <div>
                       <div className="text-xs font-semibold text-slate-800 truncate max-w-[160px]">
-                        {screenshotFileName || 'receipt.png'}
+                        {screenshotFileName || 'voucher.svg'}
                       </div>
                       <div className="text-[11px] text-emerald-600 font-bold flex items-center gap-1">
                         <Check className="w-3 h-3 stroke-[3]" />
@@ -271,7 +313,10 @@ export function PayDepositView() {
                   </div>
                   <button
                     type="button"
-                    onClick={handleClearScreenshot}
+                    onClick={() => {
+                      setScreenshotDataUri('');
+                      setScreenshotFileName('');
+                    }}
                     className="p-1.5 rounded-lg text-rose-600 hover:bg-rose-50 transition active:scale-95"
                     title="Remove attachment"
                   >
@@ -282,27 +327,36 @@ export function PayDepositView() {
             </div>
           </div>
         ) : (
-          /* Cash Handover Fields */
           <div>
-            <label htmlFor="cashNoteInput" className="block text-xs font-semibold text-slate-700 mb-1">
-              2. Receiver Name / Handover Note
-            </label>
+            <div className="flex items-center justify-between mb-1">
+              <label htmlFor="cashNoteInput" className="block text-xs font-semibold text-slate-700">
+                2. Receiver Name / Handover Note
+              </label>
+              <button
+                type="button"
+                onClick={() => setCashNote(`Handed cash directly to Admin (${adminName})`)}
+                className="text-[11px] font-bold text-indigo-600 hover:text-indigo-800 transition cursor-pointer"
+              >
+                + Fill: Handed to {adminName.split(' ')[0]}
+              </button>
+            </div>
             <input
               id="cashNoteInput"
               type="text"
               value={cashNote}
               onChange={(e) => setCashNote(e.target.value)}
-              placeholder="e.g. Paid cash directly to Admin Karim"
-              className="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              placeholder={`e.g. Paid cash directly to Samity Admin (${adminName})`}
+              className="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium"
             />
           </div>
         )}
 
         <button
           type="submit"
-          className="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm transition shadow-sm active:scale-98"
+          disabled={isSubmitting}
+          className="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm transition shadow-sm active:scale-98 disabled:opacity-50"
         >
-          Submit Deposit for Verification
+          {isSubmitting ? 'Submitting Deposit...' : 'Submit Deposit for Verification'}
         </button>
       </form>
     </div>
